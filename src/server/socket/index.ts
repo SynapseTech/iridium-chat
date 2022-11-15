@@ -6,4 +6,4 @@ const socketHandler = async (wss: WebSocketServer) => {
 	});
 }
 
-export default SocketHandler;
+export default socketHandler;
