@@ -1,6 +1,6 @@
 import { NextPage } from "next";
 import Head from "next/head";
-import { WSProvider, useWS } from "../utils/ws";}
+import { WSProvider, useWS } from "../utils/ws";
 
 const ChatPage: NextPage = () => {
 	return (
