@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import { createContext, useContext, useMemo, useEffect, ReactNode } from 'react';
 
 type WSProviderProps = { children: ReactNode; url: string };
@@ -6,7 +5,6 @@ type WSProviderProps = { children: ReactNode; url: string };
 const WSStateContext = createContext<WebSocket | null>(null);
 
 function WSProvider({ children, url }: WSProviderProps): JSX.Element {
-  const rt = useRouter()
   const wsInstance = useMemo(
     () => (typeof window != 'undefined' ? new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/${url}`) : null),
     []
