@@ -6,7 +6,13 @@ module.exports = {
   ],
   darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        "brand": {
+          "600": "#ff8100"
+        }
+      }
+    },
   },
   plugins: [
 	  require('preline/plugin'),
