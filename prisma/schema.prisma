@@ -48,6 +48,7 @@ model User {
   accounts Account[]
   sessions Session[]
   ownedServers Server[]
+  sentTestMessages TestMessage[]
 }
 
 model VerificationToken {
@@ -63,4 +64,12 @@ model Server {
   name String
   ownerId String
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model TestMessage {
+  id String @id @default(cuid())
+  content String
+  createdTimestamp DateTime @default(now())
+  authorId String
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
