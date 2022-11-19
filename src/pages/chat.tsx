@@ -14,6 +14,8 @@ interface IMessage {
 const ChatPage: NextPage = () => {
   const { data: _session } = useSession();
   const wsInstance = useRef<WebSocket | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const messageContainerRef = useRef<HTMLDivElement | null>(null)
   const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
   const [wsClient, setClient] = useState<WebSocket | undefined>(undefined)
   const [message, setMessage] = useState<string>('')
@@ -78,10 +80,20 @@ const ChatPage: NextPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waitingToReconnect])
 
+  function scrollToBottom() {
+    messageContainerRef.current?.scrollTo(0, messagesEndRef.current?.offsetTop!! + 5 * 16)
+    // messagesEndRef.current?.scrollIntoView({ 
+    //   behavior: "smooth",
+    //   block: "end",
+    //   inline: "end",
+    // });
+  }
+
   function sendMessage(e: FormEvent) {
     e.preventDefault();
     if (message.trim() === '') return;
-    wsClient?.send(JSON.stringify({ content: message.trim(), timestamp: Date.now(), user: _session?.user?.name }));
+    wsClient?.send(JSON.stringify({ content: message.trim(), timestamp: Date.now(), user: _session?.user?.name }))
+    scrollToBottom();
     setMessage('');
   }
 
@@ -144,16 +156,21 @@ const ChatPage: NextPage = () => {
               Chat
             </div>
           </div>
-          <div className='flex flex-col justify-end px-6 flex-grow'>
-            {messages.map(({ content, timestamp, user }, idx) => {
-              return (
-                <div key={idx} className="py-4">
-                  <h1 className='font-bold'>{user}</h1>
-                  <p>{content}</p>
-                  <p>{new Date(timestamp).toLocaleString()}</p>
-                </div>
-              )
-            })}
+          <div className='flex-grow relative'>
+            <div ref={messageContainerRef} className='absolute top-0 bottom-0 left-0 right-0 min-h-0 overflow-x-hidden overflow-y-scroll'>
+              <div className='justify-end flex flex-col items-stretch min-h-full relative'>
+                {messages.map(({ content, timestamp, user }, idx) => {
+                  return (
+                    <div key={idx} className="py-4 transform-[translateY(-5rem)]">
+                      <h1 className='font-bold'>{user}</h1>
+                      <p>{content}</p>
+                      <p>{new Date(timestamp).toLocaleString()}</p>
+                    </div>
+                  )
+                })}
+              </div>
+              <div ref={messagesEndRef} />
+            </div>
           </div>
           <form onSubmit={sendMessage} className="flex items-center border-t border-gray-200 px-6 py-4 bg-white gap-4">
             <input
