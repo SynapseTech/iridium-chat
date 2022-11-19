@@ -1,6 +1,6 @@
 import { authedProcedure, t } from "../trpc";
 import { z } from "zod";
-import { broadcastTestMessage } from "../../socket";
+// import { broadcastTestMessage } from "../../socket";
 
 export const messageRouter = t.router({
   getAllTests: authedProcedure.query(({ ctx }) => {
@@ -15,6 +15,6 @@ export const messageRouter = t.router({
         authorId: ctx.session.user.id,
       }
     });
-    broadcastTestMessage(message);
+    // broadcastTestMessage(message);
   }),
 });
