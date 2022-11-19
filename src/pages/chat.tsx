@@ -20,7 +20,7 @@ const ChatPage: NextPage = () => {
     // Only set up the websocket once
     if (!wsInstance.current) {
       startSocket()
-      const client = new WebSocket(`ws://localhost:3000`)
+      const client = new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}`)
       wsInstance.current = client
 
       setClient(client)
