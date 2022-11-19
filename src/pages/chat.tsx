@@ -1,15 +1,23 @@
 import { Hashtag } from 'iconsax-react'
 import { NextPage } from 'next'
+import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 
+interface IMessage {
+  content: string,
+  timestamp: number,
+  user: string,
+}
+
 const ChatPage: NextPage = () => {
+  const { data: _session } = useSession();
   const wsInstance = useRef<WebSocket | null>(null)
   const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
   const [wsClient, setClient] = useState<WebSocket | undefined>(undefined)
   const [message, setMessage] = useState<string>('')
-  const [messages, setMessages] = useState<{ content: string, timestamp: number }[]>([]);
+  const [messages, setMessages] = useState<IMessage[]>([]);
 
   //WebSocket Magic
   useEffect(() => {
@@ -71,25 +79,23 @@ const ChatPage: NextPage = () => {
   }, [waitingToReconnect])
 
   function sendMessage(e: FormEvent) {
-	  e.preventDefault();
+    e.preventDefault();
     if (message.trim() === '') return;
-    wsClient?.send(JSON.stringify({ content: message.trim(), timestamp: Date.now() }))
-	  setMessage('');
+    wsClient?.send(JSON.stringify({ content: message.trim(), timestamp: Date.now(), user: _session?.user?.name }));
+    setMessage('');
   }
 
   useEffect(() => {
     if (wsClient !== undefined) {
       (wsClient as WebSocket).addEventListener('message', (event) => {
-        let data: { type: string, data: { content: string; timestamp: number } } & string;
-        try {
-          data = JSON.parse(event.data);
-        } catch (e) {
-          data = event.data;
+        const data: { type: string, data: IMessage } = JSON.parse(event.data);
+
+        if (data.type === 'init') {
+          console.log('[WebSocket] Server Connected to Gateway')
+          setMessages(data.data as unknown as IMessage[])
         }
-
-        console.log(data);
-
         if (data.type === 'message') {
+          console.log(data);
           const mutatedMessages = [...messages];
           mutatedMessages.push(data.data);
           setMessages(mutatedMessages);
@@ -118,13 +124,13 @@ const ChatPage: NextPage = () => {
             <ul className="space-y-1.5">
               <li>
                 <a className='flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white' href='#'>
-                  <Hashtag color='currentColor' className='w-3.5 h-3.5'/>
+                  <Hashtag color='currentColor' className='w-3.5 h-3.5' />
                   Current Channel
                 </a>
               </li>
               <li>
                 <a className='flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300' href='#'>
-                  <Hashtag color='currentColor' className='w-3.5 h-3.5'/>
+                  <Hashtag color='currentColor' className='w-3.5 h-3.5' />
                   Other Channel
                 </a>
               </li>
@@ -133,15 +139,16 @@ const ChatPage: NextPage = () => {
         </aside>
         <div className='flex-grow flex flex-col'>
           <div className='px-6 py-4 border-b border-gray-200 bg-white flex gap-x-4 content-center'>
-            <Hashtag color='currentColor' className='w-7 h-7 opacity-50'/>
+            <Hashtag color='currentColor' className='w-7 h-7 opacity-50' />
             <div className='text-xl font-semibold dark:text-white'>
               Chat
             </div>
           </div>
           <div className='flex flex-col justify-end px-6 flex-grow'>
-            {messages.map(({ content, timestamp }, idx) => {
+            {messages.map(({ content, timestamp, user }, idx) => {
               return (
                 <div key={idx} className="py-4">
+                  <h1 className='font-bold'>{user}</h1>
                   <p>{content}</p>
                   <p>{new Date(timestamp).toLocaleString()}</p>
                 </div>

@@ -1,6 +1,10 @@
 import WebSocket, { WebSocketServer } from "ws";
 
-type IMessage = { content: string, timestamp: number };
+interface IMessage {
+	content: string,
+	timestamp: number,
+	user: string,
+}
 const messages: IMessage[] = [];
 
 const socketHandler = async (wss: WebSocketServer) => {
@@ -8,8 +12,8 @@ const socketHandler = async (wss: WebSocketServer) => {
 	wss.on("connection", (ws: WebSocket) => {
 		clients.add(ws);
 		ws.on("close", () => clients.delete(ws))
-		ws.on("message", (message) => {
-			const msg: { content: string, timestamp: number } = JSON.parse(message.toString());
+		ws.on("message", (message: WebSocket.RawData) => {
+			const msg: IMessage = JSON.parse(message.toString());
 			messages.push(msg);
 			clients.forEach(ws => ws.send(JSON.stringify({
 				type: 'message',
@@ -17,7 +21,7 @@ const socketHandler = async (wss: WebSocketServer) => {
 			})));
 		});
 
-		ws.send("Hello! Message From Server");
+		ws.send(JSON.stringify({ type: 'init', data: messages }));
 	});
 }
 
