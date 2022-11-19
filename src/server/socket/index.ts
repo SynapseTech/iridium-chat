@@ -1,17 +1,20 @@
-import { WebSocketServer } from "ws";
+import WebSocket, { WebSocketServer } from "ws";
 
 type IMessage = { content: string, timestamp: number };
 const messages: IMessage[] = [];
 
 const socketHandler = async (wss: WebSocketServer) => {
-	wss.on("connection", (ws) => {
+	const clients: Set<WebSocket> = new Set();
+	wss.on("connection", (ws: WebSocket) => {
+		clients.add(ws);
+		ws.on("close", () => clients.delete(ws))
 		ws.on("message", (message) => {
 			const msg: { content: string, timestamp: number } = JSON.parse(message.toString());
 			messages.push(msg);
-			ws.send(JSON.stringify({
+			clients.forEach(ws => ws.send(JSON.stringify({
 				type: 'message',
 				data: msg
-			}));
+			})));
 		});
 
 		ws.send("Hello! Message From Server");
