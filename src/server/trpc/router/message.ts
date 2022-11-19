@@ -9,6 +9,7 @@ export const messageRouter = t.router({
   createTestMessage: authedProcedure.input(z.object({
     content: z.string(),
   })).mutation(async ({ ctx, input }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const message = await ctx.prisma.testMessage.create({
       data: {
         content: input.content,

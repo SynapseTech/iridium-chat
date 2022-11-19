@@ -2,10 +2,10 @@ import { Hashtag } from 'iconsax-react'
 import { NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { Dispatch, FormEvent, SetStateAction, useEffect, useRef, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 
 const ChatPage: NextPage = () => {
-  const wsInstance: any = useRef<WebSocket>(null)
+  const wsInstance = useRef<WebSocket | null>(null)
   const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
   const [wsClient, setClient] = useState<WebSocket | undefined>(undefined)
   const [message, setMessage] = useState<string>('')
@@ -79,7 +79,7 @@ const ChatPage: NextPage = () => {
 
   useEffect(() => {
     if (wsClient !== undefined) {
-      (wsClient as WebSocket).addEventListener('message', (event: any) => {
+      (wsClient as WebSocket).addEventListener('message', (event) => {
         let data: { type: string, data: { content: string; timestamp: number } } & string;
         try {
           data = JSON.parse(event.data);
