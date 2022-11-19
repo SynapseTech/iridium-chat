@@ -1,11 +1,20 @@
 import { NextPage } from 'next'
 import Head from 'next/head'
-import { useEffect, useRef, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 
 const ChatPage: NextPage = () => {
   const wsInstance: any = useRef(null)
   const [waitingToReconnect, setWaitingToReconnect] = useState(false)
-  const [wsClient, setClient]: any = useState(null)
+  const [wsClient, setClient]: [
+    WebSocket | undefined,
+    Dispatch<SetStateAction<any>>,
+  ] = useState(undefined)
+  const [message, setMessage] = useState('')
+  const [messages, setMessages]: [
+    { content: string, timestamp: number }[],
+    Dispatch<SetStateAction<any>>,
+  ] = useState([]);
+
   //WebSocket Magic
   useEffect(() => {
     if (waitingToReconnect) {
@@ -62,7 +71,7 @@ const ChatPage: NextPage = () => {
         console.log('[WebSocket] Cleanup WebSocket Connection')
         // Dereference, so it will set up next time
         wsInstance.current = null
-        setClient(null)
+        setClient(undefined)
 
         client.close()
       }
@@ -70,14 +79,30 @@ const ChatPage: NextPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waitingToReconnect])
 
+  function sendMessage() {
+    wsClient?.send(JSON.stringify({ content: message, timestamp: Date.now() }))
+  }
+
   useEffect(() => {
-    if (wsClient !== null) {
-      wsClient.addEventListener('message', function (event: any) {
-        const data = event.data
-        console.log(data)
-      })
+    if (wsClient !== undefined) {
+      (wsClient as WebSocket).addEventListener('message', (event: any) => {
+        let data: { type: string, data: { content: string; timestamp: number } } & string;
+        try {
+          data = JSON.parse(event.data);
+        } catch (e) {
+          data = event.data;
+        }
+
+        console.log(data);
+
+        if (data.type === 'message') {
+          const mutatedMessages = [...messages];
+          mutatedMessages.push(data.data);
+          setMessages(mutatedMessages);
+        }
+      });
     }
-  }, [wsClient])
+  }, [wsClient, messages])
 
   return (
     <div>
@@ -85,7 +110,27 @@ const ChatPage: NextPage = () => {
         <title>Iridium Chat</title>
       </Head>
 
-      <main className="h-screen w-screen bg-gray-50 dark:bg-slate-900"></main>
+      <main className="h-screen w-screen bg-gray-50 dark:bg-slate-900">
+        <div className='flex flex-col justify-center'>
+          {messages.map(({ content, timestamp }, id) => {
+            return (
+              <div key={id} className="py-4">
+                <p>{content}</p>
+                <p>{new Date(timestamp).toLocaleString()}</p>
+              </div>
+            )
+          })}
+        </div>
+        <div className="flex flex-col h-full justify-center items-center">
+          <textarea
+            className="w-[200px]"
+            onChange={(e) => setMessage(e.target.value)}
+          ></textarea>
+          <button className="items-start" onClick={sendMessage}>
+            Send
+          </button>
+        </div>
+      </main>
     </div>
   )
 }
