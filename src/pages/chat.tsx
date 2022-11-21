@@ -33,8 +33,9 @@ const ChatPage: NextPage = () => {
       const client = new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}`)
       wsInstance.current = client
 
-      setClient(client)
+      scrollToBottom();
 
+      setClient(client)
       client.onerror = (e) => console.error(e)
 
       client.onopen = () => {
@@ -61,7 +62,9 @@ const ChatPage: NextPage = () => {
         // Setting this will trigger a re-run of the effect,
         // cleaning up the current websocket, but not setting
         // up a new one right away
-        setWaitingToReconnect(true)
+        setWaitingToReconnect(true);
+        (document.getElementById('textInput') as HTMLInputElement).value = "";
+
 
         // This will trigger another re-run, and because it is false,
         // the socket will be set up again
@@ -81,19 +84,19 @@ const ChatPage: NextPage = () => {
   }, [waitingToReconnect])
 
   function scrollToBottom() {
-    messageContainerRef.current?.scrollTo(0, messagesEndRef.current?.offsetTop!! + 5 * 16)
-    // messagesEndRef.current?.scrollIntoView({ 
-    //   behavior: "smooth",
-    //   block: "end",
-    //   inline: "end",
-    // });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+    messageContainerRef.current?.scrollTo(0, messagesEndRef.current?.offsetTop! + 5 * 16)
+    /*messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+      inline: "end",
+    });*/
   }
 
   function sendMessage(e: FormEvent) {
     e.preventDefault();
     if (message.trim() === '') return;
     wsClient?.send(JSON.stringify({ content: message.trim(), timestamp: Date.now(), user: _session?.user?.name }))
-    scrollToBottom();
     setMessage('');
   }
 
@@ -107,10 +110,12 @@ const ChatPage: NextPage = () => {
           setMessages(data.data as unknown as IMessage[])
         }
         if (data.type === 'message') {
-          console.log(data);
           const mutatedMessages = [...messages];
           mutatedMessages.push(data.data);
           setMessages(mutatedMessages);
+          console.log(mutatedMessages.length - 1);
+          // const o = document.getElementById(`message_${mutatedMessages.length - 1}`);
+          // o?.scrollIntoView();
         }
       });
     }
@@ -157,11 +162,11 @@ const ChatPage: NextPage = () => {
             </div>
           </div>
           <div className='flex-grow relative'>
-            <div ref={messageContainerRef} className='absolute top-0 bottom-0 left-0 right-0 min-h-0 overflow-x-hidden overflow-y-scroll'>
-              <div className='justify-end flex flex-col items-stretch min-h-full relative'>
+            <div className="h-[300px] overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
+              <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
                 {messages.map(({ content, timestamp, user }, idx) => {
                   return (
-                    <div key={idx} className="py-4 transform-[translateY(-5rem)]">
+                    <div key={idx} className="py-4 transform-[translateY(-5rem)]" id={`message_${idx}`}>
                       <h1 className='font-bold'>{user}</h1>
                       <p>{content}</p>
                       <p>{new Date(timestamp).toLocaleString()}</p>
@@ -172,21 +177,25 @@ const ChatPage: NextPage = () => {
               <div ref={messagesEndRef} />
             </div>
           </div>
+
+
           <form onSubmit={sendMessage} className="flex items-center border-t border-gray-200 px-6 py-4 bg-white gap-4">
             <input
+              id="textInput"
               className='py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:outline-none focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
               type='text'
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder='Write a message...'
+              placeholder={waitingToReconnect ? 'Connecting...' : 'Write a message...'}
+              disabled={waitingToReconnect}
             />
-            <button type="submit" className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800">
+            <button type="submit" className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800" disabled={waitingToReconnect}>
               Send
             </button>
           </form>
-        </div>
-      </main>
-    </div>
+        </div >
+      </main >
+    </div >
   )
 }
 
