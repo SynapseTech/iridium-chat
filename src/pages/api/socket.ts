@@ -15,14 +15,13 @@ const socketBinder = async (req: NextApiRequest, res: NextApiResponse) => {
 			console.log('Socket is initializing');
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
-			const wss = new WebSocketServer({ server: res.socket.server })
+			const wss = new WebSocketServer({ server: res.socket.server });
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			res.socket.server.ws = wss;
 
 			socketHandler(wss);
 		}
-		res.end();
 	} else res.end("Fuck off.");
 }
 

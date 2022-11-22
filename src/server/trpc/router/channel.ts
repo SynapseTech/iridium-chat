@@ -1,5 +1,6 @@
 import { authedProcedure, t } from "../trpc";
 import { z } from "zod";
+import socketState, { broadcastMessage, socketClients } from "../../socket";
 
 export const channelRouter = t.router({
   fetchMessages: t.procedure
@@ -47,5 +48,24 @@ export const channelRouter = t.router({
 
       // for now, just give access to all channels
       return await ctx.prisma.textChannel.findMany();
+    }),
+  createMessage: authedProcedure
+    .input(z.object({
+      channelId: z.string(),
+      content: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const message = await ctx.prisma.textMessage.create({
+        data: {
+          authorId: ctx.session.user.id,
+          content: input.content,
+          channelId: input.channelId,
+        },
+        include: {
+          author: true,
+        }
+      });
+
+      broadcastMessage(message);
     }),
 });

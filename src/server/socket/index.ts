@@ -1,29 +1,28 @@
+import { TextMessage, User } from "@prisma/client";
 import WebSocket, { WebSocketServer } from "ws";
+import { GlobalRef } from "../../utils/globals";
 
-interface IMessage {
-	channelId: number,
-	content: string,
-	timestamp: number,
-	user: string,
-}
-const messages: IMessage[] = [];
+export const socketClients = new GlobalRef<Set<WebSocket>>('socketClients');
 
 const socketHandler = async (wss: WebSocketServer) => {
-	const clients: Set<WebSocket> = new Set();
+	if (!socketClients.value) socketClients.value = new Set();
 	wss.on("connection", (ws: WebSocket) => {
-		clients.add(ws);
-		ws.on("close", () => clients.delete(ws))
-		ws.on("message", (message: WebSocket.RawData) => {
-			const msg: IMessage = JSON.parse(message.toString());
-			messages.push(msg);
-			clients.forEach(ws => ws.send(JSON.stringify({
-				type: 'message',
-				data: msg
-			})));
+		socketClients.value?.add(ws);
+		console.log("ws++")
+		ws.on("close", () => {
+			console.log("ws--")
+			socketClients.value?.delete(ws)
 		});
-
-		ws.send(JSON.stringify({ type: 'init', data: messages }));
 	});
+}
+
+export const broadcastMessage = (msg: TextMessage & { author: User }) => {
+	// console.log(msg);
+	// console.log(socketClients.value?.size);
+	socketClients.value?.forEach(ws => ws.send(JSON.stringify({
+		type: 'message',
+		data: msg
+	})));
 }
 
 export default socketHandler;

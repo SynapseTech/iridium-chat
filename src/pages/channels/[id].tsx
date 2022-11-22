@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { FormEvent, useEffect, useRef, useState } from 'react'
+import Message from '../../components/message'
 import { getServerAuthSession } from '../../server/common/get-server-auth-session'
 import { trpc } from '../../utils/trpc'
 
@@ -27,9 +28,10 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const [message, setMessage] = useState<string>('')
   const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id });
+  const createMessageMutation = trpc.channel.createMessage.useMutation();
 
-  const [channels, setChannels] = useState<TextChannel[]>([]); 
-  const createChannel = trpc.channel.create.useMutation();
+  const [channels, setChannels] = useState<TextChannel[]>([]);
+  const createChannelMutation = trpc.channel.create.useMutation();
   const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
 
   /**
@@ -55,7 +57,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     // Only set up the websocket once
     if (!wsInstance.current) {
       startSocket()
-      const client = new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}`)
+      const client = new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api/socket`)
       wsInstance.current = client
 
       scrollToBottom();
@@ -111,29 +113,27 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   function scrollToBottom() {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
     messageContainerRef.current?.scrollTo(0, messagesEndRef.current?.offsetTop! + 5 * 16)
-    /*messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-      inline: "end",
-    });*/
   }
 
   function sendMessage(e: FormEvent) {
     e.preventDefault();
     if (message.trim() === '') return;
-    wsClient?.send(JSON.stringify({ channelId: channel.id, content: message.trim(), timestamp: Date.now(), user: _session?.user?.name }))
+    createMessageMutation.mutate({ channelId: channel.id, content: message })
     setMessage('');
   }
 
   useEffect(() => {
     if (wsClient !== undefined) {
-      (wsClient as WebSocket).addEventListener('message', (event) => {
+      (wsClient as WebSocket).onmessage = (event) => {
         const data: { type: string, data: TextMessage & { author: User } } = JSON.parse(event.data);
 
         if (data.type === 'message') {
-          setMessages((prevMessages) => prevMessages.concat(data.data));
+          if (data.data.channelId === channel.id && !messages.some(msg => msg.id === data.data.id)) {
+            console.log("message recieved", data.data)
+            setMessages((prevMessages) => prevMessages.concat(data.data));
+          }
         }
-      });
+      };
     }
   }, [wsClient, messages])
 
@@ -182,15 +182,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           <div className='flex-grow relative'>
             <div className="overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
               <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
-                {messages.filter(({ channelId }) => channelId === channel.id).map(({ content, createdTimestamp, author }, idx) => {
-                  return (
-                    <div key={idx} className="py-4 transform-[translateY(-5rem)]" id={`message_${idx}`}>
-                      <h1 className='font-bold'>{author.name}</h1>
-                      <p>{content}</p>
-                      <p>{new Date(createdTimestamp).toLocaleString()}</p>
-                    </div>
-                  )
-                })}
+                {messages.map((message, key) => <Message {...{message, key}} />)}
               </div>
               <div ref={messagesEndRef} />
             </div>
@@ -241,7 +233,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
 
   return {
     props: {
-      channel,
+      channel: JSON.parse(JSON.stringify(channel)), // dumbshit
     },
   };
 }
