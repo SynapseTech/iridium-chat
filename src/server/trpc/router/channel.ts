@@ -28,9 +28,24 @@ export const channelRouter = t.router({
 
       return channel.messages;
     }),
-  create: authedProcedure.input(z.object({
-    name: z.string()
-  })).mutation(async ({ ctx, input }) => {
+  create: authedProcedure
+    .input(z.object({
+      name: z.string()
+    })).mutation(async ({ ctx, input }) => {
+      const channel = await ctx.prisma.textChannel.create({
+        data: {
+          name: input.name,
+          ownerId: ctx.session.user.id,
+        },
+      });
 
-  }),
+      return channel;
+    }),
+  getAccessible: authedProcedure
+    .query(async ({ ctx }) => {
+      // todo: access perms
+
+      // for now, just give access to all channels
+      return await ctx.prisma.textChannel.findMany();
+    }),
 });

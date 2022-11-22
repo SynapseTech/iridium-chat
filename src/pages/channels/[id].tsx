@@ -16,14 +16,21 @@ type ChatPageProps = ChatPageServerSideProps;
 
 const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const { data: _session } = useSession();
-  const wsInstance = useRef<WebSocket | null>(null)
+  
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const messageContainerRef = useRef<HTMLDivElement | null>(null)
+  
+  const wsInstance = useRef<WebSocket | null>(null)
   const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
   const [wsClient, setClient] = useState<WebSocket | undefined>(undefined)
+  
   const [message, setMessage] = useState<string>('')
   const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id });
+
+  const [channels, setChannels] = useState<TextChannel[]>([]); 
+  const createChannel = trpc.channel.create.useMutation();
+  const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
 
   /**
    * Load initial messages using tRPC on page load.
@@ -31,6 +38,13 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   useEffect(() => {
     if (loadMessagesQuery.data) setMessages(loadMessagesQuery.data);
   }, [loadMessagesQuery.data]) // run when data fetch
+
+  /**
+   * Load accessible channels using tRPC on page load.
+   */
+  useEffect(() => {
+    if (loadChannelsQuery.data) setChannels(loadChannelsQuery.data);
+  }, [loadChannelsQuery.data]) // run when data fetch
 
   //WebSocket Magic
   useEffect(() => {
@@ -141,18 +155,20 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           </div>
           <nav className='p-6 w-full flex flex-col flex-wrap'>
             <ul className="space-y-1.5">
-              <li>
-                <a className='flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white' href='#'>
-                  <Hashtag color='currentColor' className='w-3.5 h-3.5' />
-                  Current Channel
-                </a>
-              </li>
-              <li>
-                <a className='flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300' href='/channels/2'>
-                  <Hashtag color='currentColor' className='w-3.5 h-3.5' />
-                  Other Channel
-                </a>
-              </li>
+              {channels.map(({ name, id }) => <li>
+                <Link href={`/channels/${id}`}>
+                  <a 
+                    className={
+                      channel.id === id 
+                        ? 'flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
+                        : 'flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
+                    }
+                  >
+                    <Hashtag color='currentColor' className='w-3.5 h-3.5' />
+                    {name}
+                  </a>
+                </Link>
+              </li>)}
             </ul>
           </nav>
         </aside>
@@ -160,7 +176,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           <div className='px-6 py-4 border-b border-gray-200 bg-white flex gap-x-4 content-center'>
             <Hashtag color='currentColor' className='w-7 h-7 opacity-50' />
             <div className='text-xl font-semibold dark:text-white'>
-              Chat
+              {channel.name}
             </div>
           </div>
           <div className='flex-grow relative'>

@@ -48,6 +48,7 @@ model User {
   accounts Account[]
   sessions Session[]
   ownedServers Server[]
+  ownedTextChannels TextChannel[]
   sentTextMessages TextMessage[]
 }
 
@@ -70,6 +71,13 @@ model TextChannel {
   id String @id @default(cuid())
   name String
   messages TextMessage[]
+  createdTimestamp DateTime @default(now())
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // todo: server-channel relationships
+  // serverId String
+  // server Server @relation()
 }
 
 model TextMessage {
