@@ -1,6 +1,6 @@
 import { authedProcedure, t } from "../trpc";
 import { z } from "zod";
-import socketState, { broadcastMessage, socketClients } from "../../socket";
+import { broadcastMessage } from "../../socket";
 
 export const channelRouter = t.router({
   fetchMessages: t.procedure

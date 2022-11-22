@@ -1,7 +1,6 @@
 import { TextChannel, TextMessage, User } from '@prisma/client'
 import { Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
-import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { FormEvent, useEffect, useRef, useState } from 'react'
@@ -16,8 +15,6 @@ type ChatPageServerSideProps = {
 type ChatPageProps = ChatPageServerSideProps;
 
 const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
-  const { data: _session } = useSession();
-  
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const messageContainerRef = useRef<HTMLDivElement | null>(null)
   
@@ -31,7 +28,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const createMessageMutation = trpc.channel.createMessage.useMutation();
 
   const [channels, setChannels] = useState<TextChannel[]>([]);
-  const createChannelMutation = trpc.channel.create.useMutation();
+  // const createChannelMutation = trpc.channel.create.useMutation();
   const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
 
   /**
@@ -135,7 +132,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         }
       };
     }
-  }, [wsClient, messages])
+  }, [wsClient, messages]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div>
@@ -155,7 +152,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           </div>
           <nav className='p-6 w-full flex flex-col flex-wrap'>
             <ul className="space-y-1.5">
-              {channels.map(({ name, id }) => <li>
+              {channels.map(({ name, id }) => <li key={`channel_${id}`}>
                 <Link href={`/channels/${id}`}>
                   <a 
                     className={
@@ -182,7 +179,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           <div className='flex-grow relative'>
             <div className="overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
               <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
-                {messages.map((message, key) => <Message {...{message, key}} />)}
+                {messages.map((message, idx) => <Message key={idx} message={message} />)}
               </div>
               <div ref={messagesEndRef} />
             </div>
@@ -221,7 +218,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
   };
 
   const channelId = params['id'] as string;
-  const channel = await prisma!!.textChannel.findUnique({
+  const channel = await prisma!.textChannel.findUnique({
     where: {
       id: channelId,
     },
