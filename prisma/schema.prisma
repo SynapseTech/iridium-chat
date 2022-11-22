@@ -48,7 +48,7 @@ model User {
   accounts Account[]
   sessions Session[]
   ownedServers Server[]
-  sentTestMessages TestMessage[]
+  sentTextMessages TextMessage[]
 }
 
 model VerificationToken {
@@ -66,10 +66,18 @@ model Server {
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
 
-model TestMessage {
+model TextChannel {
+  id String @id @default(cuid())
+  name String
+  messages TextMessage[]
+}
+
+model TextMessage {
   id String @id @default(cuid())
   content String
   createdTimestamp DateTime @default(now())
+  channelId String
+  channel TextChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   authorId String
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
