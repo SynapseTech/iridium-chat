@@ -21,6 +21,7 @@
     "@trpc/next": "10.0.0-proxy-alpha.70",
     "@trpc/react": "10.0.0-proxy-alpha.70",
     "@trpc/server": "10.0.0-proxy-alpha.70",
+    "classnames": "^2.3.2",
     "iconsax-react": "^0.0.8",
     "next": "12.2.5",
     "next-auth": "^4.10.2",
@@ -53,5 +54,5 @@
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
-  }  
+  }
 }

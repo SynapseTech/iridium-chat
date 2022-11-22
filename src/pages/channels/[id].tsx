@@ -3,11 +3,12 @@ import { Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { FormEvent, Ref, useEffect, useRef, useState } from 'react'
 import Message from '../../components/message'
 import { getServerAuthSession } from '../../server/common/get-server-auth-session'
 import { trpc } from '../../utils/trpc'
 import { prisma } from '../../server/db/client'
+import { useSession } from 'next-auth/react'
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -16,6 +17,8 @@ type ChatPageServerSideProps = {
 type ChatPageProps = ChatPageServerSideProps;
 
 const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
+  const { data: session } = useSession();
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const messageContainerRef = useRef<HTMLDivElement | null>(null)
   
@@ -25,6 +28,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   
   const [message, setMessage] = useState<string>('')
   const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
+  const pendingMessage = useRef<(TextMessage  & { author: User }) | null>(null);
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id });
   const createMessageMutation = trpc.channel.createMessage.useMutation();
 
@@ -116,7 +120,22 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   function sendMessage(e: FormEvent) {
     e.preventDefault();
     if (message.trim() === '') return;
-    createMessageMutation.mutate({ channelId: channel.id, content: message })
+    pendingMessage.current = {
+      createdTimestamp: new Date(),
+      content: message.trim(),
+      id: '',
+      channelId: channel.id,
+      authorId: session!.user!.id,
+      author: {
+        id: session!.user!.id,
+        name: session!.user!.name!,
+        email: '',
+        emailVerified: new Date(),
+        image:  session!.user!.image!,
+      }
+    };
+    console.log('send', pendingMessage)
+    createMessageMutation.mutate({ channelId: channel.id, content: message });
     setMessage('');
   }
 
@@ -127,7 +146,13 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
 
         if (data.type === 'message') {
           if (data.data.channelId === channel.id && !messages.some(msg => msg.id === data.data.id)) {
-            console.log("message recieved", data.data)
+            if (
+              pendingMessage.current &&
+              data.data.authorId === pendingMessage.current.authorId &&
+              data.data.content === pendingMessage.current.content
+            ) {
+              pendingMessage.current = null;
+            }
             setMessages((prevMessages) => prevMessages.concat(data.data));
           }
         }
@@ -181,13 +206,14 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
             <div className="overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
               <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
                 {messages.map((message, idx) => <Message key={idx} message={message} />)}
+                {pendingMessage.current && <Message pending message={pendingMessage.current} />}
               </div>
               <div ref={messagesEndRef} />
             </div>
           </div>
 
 
-          <form onSubmit={sendMessage} className="flex items-center border-t border-gray-200 px-6 py-4 bg-white gap-4">
+          <form onSubmit={sendMessage} className="flex items-center border-t border-gray-200 px-6 py-4 bg-white gap-4" autoComplete="off">
             <input
               id="textInput"
               className='py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:outline-none focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'

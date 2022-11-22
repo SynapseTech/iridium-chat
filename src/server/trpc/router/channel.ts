@@ -3,7 +3,7 @@ import { z } from "zod";
 import { broadcastMessage } from "../../socket";
 
 export const channelRouter = t.router({
-  fetchMessages: t.procedure
+  fetchMessages: authedProcedure
     .input(z.object({ 
       channelId: z.string(),
       start: z.number().default(0),
@@ -67,5 +67,6 @@ export const channelRouter = t.router({
       });
 
       broadcastMessage(message);
+      return message;
     }),
 });
