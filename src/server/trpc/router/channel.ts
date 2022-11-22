@@ -16,7 +16,7 @@ export const channelRouter = t.router({
         include: {
           messages: {
             orderBy: {
-              createdTimestamp: 'asc',
+              createdTimestamp: 'desc',
             },
             skip: input.start,
             take: input.count,
@@ -27,7 +27,7 @@ export const channelRouter = t.router({
         },
       });
 
-      return channel.messages;
+      return channel.messages.reverse();
     }),
   create: authedProcedure
     .input(z.object({
