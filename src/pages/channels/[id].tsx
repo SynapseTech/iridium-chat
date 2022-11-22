@@ -166,7 +166,7 @@ const ChatPage: NextPage = () => {
             </div>
           </div>
           <div className='flex-grow relative'>
-            <div className="h-[300px] overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
+            <div className="overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
               <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
                 {messages.filter(({ channelId }) => channelId === Number(id)).map(({ content, timestamp, user }, idx) => {
                   return (
