@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from "ws";
 
 interface IMessage {
+	channelId: number,
 	content: string,
 	timestamp: number,
 	user: string,
