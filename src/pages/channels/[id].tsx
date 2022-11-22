@@ -7,6 +7,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react'
 import Message from '../../components/message'
 import { getServerAuthSession } from '../../server/common/get-server-auth-session'
 import { trpc } from '../../utils/trpc'
+import { prisma } from '../../server/db/client'
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -218,7 +219,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
   };
 
   const channelId = params['id'] as string;
-  const channel = await prisma!.textChannel.findUnique({
+  const channel = await prisma.textChannel.findUnique({
     where: {
       id: channelId,
     },
