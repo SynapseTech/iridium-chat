@@ -1,19 +1,20 @@
+import { TextChannel, TextMessage, User } from '@prisma/client'
 import { Hashtag } from 'iconsax-react'
-import { NextPage } from 'next'
+import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { FormEvent, useEffect, useRef, useState } from 'react'
+import { getServerAuthSession } from '../../server/common/get-server-auth-session'
+import { trpc } from '../../utils/trpc'
 
-interface IMessage {
-  channelId: number,
-  content: string,
-  timestamp: number,
-  user: string,
-}
+type ChatPageServerSideProps = {
+  channel: TextChannel;
+};
 
-const ChatPage: NextPage = () => {
+type ChatPageProps = ChatPageServerSideProps;
+
+const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const { data: _session } = useSession();
   const wsInstance = useRef<WebSocket | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
@@ -21,9 +22,15 @@ const ChatPage: NextPage = () => {
   const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
   const [wsClient, setClient] = useState<WebSocket | undefined>(undefined)
   const [message, setMessage] = useState<string>('')
-  const [messages, setMessages] = useState<IMessage[]>([]);
-  const router = useRouter();
-  const { id } = router.query;
+  const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
+  const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id });
+
+  /**
+   * Load initial messages using tRPC on page load.
+   */
+  useEffect(() => {
+    if (loadMessagesQuery.data) setMessages(loadMessagesQuery.data);
+  }, [loadMessagesQuery.data]) // run when data fetch
 
   //WebSocket Magic
   useEffect(() => {
@@ -100,26 +107,17 @@ const ChatPage: NextPage = () => {
   function sendMessage(e: FormEvent) {
     e.preventDefault();
     if (message.trim() === '') return;
-    wsClient?.send(JSON.stringify({ channelId: Number(id), content: message.trim(), timestamp: Date.now(), user: _session?.user?.name }))
+    wsClient?.send(JSON.stringify({ channelId: channel.id, content: message.trim(), timestamp: Date.now(), user: _session?.user?.name }))
     setMessage('');
   }
 
   useEffect(() => {
     if (wsClient !== undefined) {
       (wsClient as WebSocket).addEventListener('message', (event) => {
-        const data: { type: string, data: IMessage } = JSON.parse(event.data);
+        const data: { type: string, data: TextMessage & { author: User } } = JSON.parse(event.data);
 
-        if (data.type === 'init') {
-          console.log('[WebSocket] Server Connected to Gateway')
-          setMessages(data.data as unknown as IMessage[])
-        }
         if (data.type === 'message') {
-          const mutatedMessages = [...messages];
-          mutatedMessages.push(data.data);
-          setMessages(mutatedMessages);
-          console.log(mutatedMessages.length - 1);
-          // const o = document.getElementById(`message_${mutatedMessages.length - 1}`);
-          // o?.scrollIntoView();
+          setMessages((prevMessages) => prevMessages.concat(data.data));
         }
       });
     }
@@ -168,12 +166,12 @@ const ChatPage: NextPage = () => {
           <div className='flex-grow relative'>
             <div className="overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
               <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
-                {messages.filter(({ channelId }) => channelId === Number(id)).map(({ content, timestamp, user }, idx) => {
+                {messages.filter(({ channelId }) => channelId === channel.id).map(({ content, createdTimestamp, author }, idx) => {
                   return (
                     <div key={idx} className="py-4 transform-[translateY(-5rem)]" id={`message_${idx}`}>
-                      <h1 className='font-bold'>{user}</h1>
+                      <h1 className='font-bold'>{author.name}</h1>
                       <p>{content}</p>
-                      <p>{new Date(timestamp).toLocaleString()}</p>
+                      <p>{new Date(createdTimestamp).toLocaleString()}</p>
                     </div>
                   )
                 })}
@@ -201,6 +199,35 @@ const ChatPage: NextPage = () => {
       </main >
     </div >
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async ({ req, res, params }: GetServerSidePropsContext): Promise<GetServerSidePropsResult<ChatPageServerSideProps>> => {
+  const session = getServerAuthSession({ req, res });
+
+  if (!session || !params) return {
+    redirect: {
+      destination: '/',
+      permanent: false,
+      statusCode: 301,
+    },
+  };
+
+  const channelId = params['id'] as string;
+  const channel = await prisma!!.textChannel.findUnique({
+    where: {
+      id: channelId,
+    },
+  });
+
+  if (!channel) return {
+    notFound: true,
+  };
+
+  return {
+    props: {
+      channel,
+    },
+  };
 }
 
 export default ChatPage
