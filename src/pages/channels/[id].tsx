@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TextChannel, TextMessage, User } from '@prisma/client'
-import { Edit, Hashtag } from 'iconsax-react'
+import { Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -379,7 +379,18 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
                 readOnly={waitingToReconnect}
               />
             </Slate>
-            <button type="submit" className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800" disabled={waitingToReconnect}>
+            <button type="submit" className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800" disabled={waitingToReconnect} onClick={() => {
+              if ((editor.children[0] as any)?.children[0].text.length === 0) return;
+              const sendingMsg = sendMessage((editor.children[0] as any)?.children[0].text);
+              if (sendingMsg?.sent) {
+                Transforms.delete(editor, {
+                  at: {
+                    anchor: Editor.start(editor, []),
+                    focus: Editor.end(editor, []),
+                  },
+                });
+              }
+            }}>
               Send
             </button>
           </div>
