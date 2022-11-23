@@ -390,13 +390,12 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res, params }: GetServerSidePropsContext): Promise<GetServerSidePropsResult<ChatPageServerSideProps>> => {
-  const session = getServerAuthSession({ req, res });
+  const session = await getServerAuthSession({ req, res });
 
   if (!session || !params) return {
     redirect: {
       destination: '/',
       permanent: false,
-      statusCode: 301,
     },
   };
 

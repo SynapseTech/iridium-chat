@@ -36,7 +36,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                         <span className='font-bold'>{message.author.name}</span>
                         <span className='text-slate-700 dark:text-slate-400 text-sm'>{new Date(message.createdTimestamp).toLocaleString()}</span>
                     </div>
-                    <p>{parse(markdownParser(message.content))}</p>
+                    <p className='break-all'>{parse(markdownParser(message.content))}</p>
                 </div>
             </div>
         </div>
