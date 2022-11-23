@@ -15,6 +15,7 @@ import { Slate, Editable, withReact } from 'slate-react';
 import { BaseEditor, Descendant, Transforms, Editor } from 'slate'
 import { ReactEditor } from 'slate-react';
 import Prism from 'prismjs';
+import { LoadingMessage } from '../../components/loading'
 
 Prism.languages.markdown = Prism.languages.extend("markup", {});
 Prism.languages.insertBefore("markdown", "prolog", {
@@ -159,6 +160,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const pendingMessage = useRef<(TextMessage & { author: User }) | null>(null);
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id });
   const createMessageMutation = trpc.channel.createMessage.useMutation();
+  const [loading, setLoading] = useState<boolean>(true);
 
   const [channels, setChannels] = useState<TextChannel[]>([]);
   // const createChannelMutation = trpc.channel.create.useMutation();
@@ -168,7 +170,10 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
    * Load initial messages using tRPC on page load.
    */
   useEffect(() => {
-    if (loadMessagesQuery.data) setMessages(loadMessagesQuery.data);
+    if (loadMessagesQuery.data) {
+      setMessages(loadMessagesQuery.data);
+      setLoading(false);
+    }
   }, [loadMessagesQuery.data]) // run when data fetch
 
   /**
@@ -296,6 +301,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     }
   ];
 
+  const loadingArr = Array(7).fill(0);
   return (
     <div>
       <Head>
@@ -339,9 +345,13 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
             </div>
           </div>
           <div className='flex-grow relative'>
-            <div className="overflow-y-auto flex flex-col-reverse absolute top-0 bottom-0 w-full">
+            <div className={`${loading ? "overflow-y-hidden" : "overflow-y-auto"} flex flex-col-reverse absolute top-0 bottom-0 w-full`}>
               <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
-                {messages.map((message, idx) => <Message key={idx} message={message} />)}
+                {loading ?
+                  loadingArr.map((idx: number) => <LoadingMessage key={idx} />)
+                  :
+                  messages.map((message, idx) => <Message key={idx} message={message} />)
+                }
                 {pendingMessage.current && <Message pending message={pendingMessage.current} />}
               </div>
               <div ref={messagesEndRef} />
@@ -354,6 +364,8 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
                 renderLeaf={renderLeaf}
                 className='py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:outline-none focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
                 id="editor"
+                spellCheck={true}
+                autoCorrect='on'
                 placeholder={waitingToReconnect ? "WebSocket is Connecting. Please Hold..." : `Message #${channel.name}`}
                 onKeyDown={e => {
                   if (e.shiftKey && e.key === 'Enter') {
