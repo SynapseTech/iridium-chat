@@ -1,14 +1,103 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TextChannel, TextMessage, User } from '@prisma/client'
-import { Hashtag } from 'iconsax-react'
+import { Edit, Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { FormEvent, Ref, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Message from '../../components/message'
 import { getServerAuthSession } from '../../server/common/get-server-auth-session'
 import { trpc } from '../../utils/trpc'
 import { prisma } from '../../server/db/client'
 import { useSession } from 'next-auth/react'
+import { createEditor, Text } from 'slate';
+import { Slate, Editable, withReact } from 'slate-react';
+import { BaseEditor, Descendant, Transforms, Editor } from 'slate'
+import { ReactEditor } from 'slate-react';
+import Prism from 'prismjs';
+
+Prism.languages.markdown = Prism.languages.extend("markup", {});
+Prism.languages.insertBefore("markdown", "prolog", {
+  // blockquote: {
+  //   pattern: /^>(?:[\t ]*>)*/m, alias: "punctuation"
+  // },
+  code: [
+    { pattern: /^(?: {4}|\t).+/m, alias: "keyword" },
+    { pattern: /``.+?``|`[^`\n]+`/, alias: "keyword" }
+  ],
+  // title: [
+  //   {
+  //     pattern: /\w+.*(?:\r?\n|\r)(?:==+|--+)/,
+  //     alias: "important",
+  //     inside: { punctuation: /==+$|--+$/ }
+  //   },
+  //   {
+  //     pattern: /(^\s*)#+.+/m,
+  //     lookbehind: !0,
+  //     alias: "important",
+  //     inside: { punctuation: /^#+|#+$/ }
+  //   }
+  // ],
+  // hr: {
+  //   pattern: /(^\s*)([*-])([\t ]*\2){2,}(?=\s*$)/m,
+  //   lookbehind: !0,
+  //   alias: "punctuation"
+  // },
+  // list: {
+  //   pattern: /(^\s*)(?:[*+-]|\d+\.)(?=[\t ].)/m,
+  //   lookbehind: !0, alias: "punctuation"
+  // },
+  // "url-reference": {
+  //   pattern: /!?\[[^\]]+\]:[\t ]+(?:\S+|<(?:\\.|[^>\\])+>)(?:[\t ]+(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\)))?/,
+  //   inside: {
+  //     variable: {
+  //       pattern: /^(!?\[)[^\]]+/,
+  //       lookbehind: !0
+  //     },
+  //     string: /(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))$/,
+  //     punctuation: /^[\[\]!:]|[<>]/
+  //   },
+  //   alias: "url"
+  // },
+  bold: {
+    pattern: /(^|[^\\])(\*\*|__)(?:(?:\r?\n|\r)(?!\r?\n|\r)|.)+?\2/,
+    lookbehind: !0,
+    inside: { punctuation: /^\*\*|^__|\*\*$|__$/ }
+  },
+  italic: {
+    pattern: /(^|[^\\])([*_])(?:(?:\r?\n|\r)(?!\r?\n|\r)|.)+?\2/,
+    lookbehind: !0,
+    inside: { punctuation: /^[*_]|[*_]$/ }
+  },
+  // url: {
+  //   pattern: /!?\[[^\]]+\](?:\([^\s)]+(?:[\t ]+"(?:\\.|[^"\\])*")?\)| ?\[[^\]\n]*\])/,
+  //   inside: {
+  //     variable: {
+  //       pattern: /(!?\[)[^\]]+(?=\]$)/,
+  //       lookbehind: !0
+  //     },
+  //     string: { pattern: /"(?:\\.|[^"\\])*"(?=\)$)/ }
+  //   }
+  // }
+});
+
+(Prism.languages.markdown as any).bold.inside.url = Prism.util.clone(Prism.languages.markdown.url);
+(Prism.languages.markdown as any).italic.inside.url = Prism.util.clone(Prism.languages.markdown.url);
+(Prism.languages.markdown as any).bold.inside.italic = Prism.util.clone((Prism.languages.markdown as any).italic);
+(Prism.languages.markdown as any).italic.inside.bold = Prism.util.clone((Prism.languages.markdown as any).bold); // prettier-ignore
+
+const markdownLang = Prism.languages.markdown;
+
+type CustomElement = { type: 'paragraph'; children: CustomText[] }
+type CustomText = { text: string }
+
+declare module 'slate' {
+  interface CustomTypes {
+    Editor: BaseEditor & ReactEditor
+    Element: CustomElement
+    Text: CustomText
+  }
+}
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -21,14 +110,53 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const messageContainerRef = useRef<HTMLDivElement | null>(null)
-  
+  const [editor] = useState(() => withReact(createEditor()))
+  const decorate = useCallback(([node, path]: any[]) => {
+    const ranges: any[] = []
+
+    if (!Text.isText(node)) {
+      return ranges
+    }
+
+    const getLength = (token: any) => {
+      if (typeof token === 'string') {
+        return token.length
+      } else if (typeof token.content === 'string') {
+        return token.content.length
+      } else {
+        return token.content.reduce((l: any, t: any) => l + getLength(t), 0)
+      }
+    }
+
+    const tokens = Prism.tokenize(node.text, markdownLang)
+    let start = 0
+
+    for (const token of tokens) {
+      const length = getLength(token)
+      const end = start + length
+
+      if (typeof token !== 'string') {
+        ranges.push({
+          [token.type]: true,
+          anchor: { path, offset: start },
+          focus: { path, offset: end },
+        })
+      }
+
+      start = end
+    }
+
+    return ranges
+  }, []);
+
+  const renderLeaf = useCallback((props: any) => <Leaf {...props} />, [])
+
   const wsInstance = useRef<WebSocket | null>(null)
   const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
   const [wsClient, setClient] = useState<WebSocket | undefined>(undefined)
-  
-  const [message, setMessage] = useState<string>('')
+
   const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
-  const pendingMessage = useRef<(TextMessage  & { author: User }) | null>(null);
+  const pendingMessage = useRef<(TextMessage & { author: User }) | null>(null);
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id });
   const createMessageMutation = trpc.channel.createMessage.useMutation();
 
@@ -92,7 +220,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         // cleaning up the current websocket, but not setting
         // up a new one right away
         setWaitingToReconnect(true);
-        (document.getElementById('textInput') as HTMLInputElement).value = "";
+        //(document.getElementById('textInput') as HTMLInputElement).value = "";
 
 
         // This will trigger another re-run, and because it is false,
@@ -117,12 +245,11 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     messageContainerRef.current?.scrollTo(0, messagesEndRef.current?.offsetTop! + 5 * 16)
   }
 
-  function sendMessage(e: FormEvent) {
-    e.preventDefault();
-    if (message.trim() === '') return;
+  function sendMessage(msg: string) {
+    if (msg.trim() === '') return;
     pendingMessage.current = {
       createdTimestamp: new Date(),
-      content: message.trim(),
+      content: msg.trim(),
       id: '',
       channelId: channel.id,
       authorId: session!.user!.id,
@@ -131,12 +258,14 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         name: session!.user!.name!,
         email: '',
         emailVerified: new Date(),
-        image:  session!.user!.image!,
+        image: session!.user!.image!,
       }
     };
     console.log('send', pendingMessage)
-    createMessageMutation.mutate({ channelId: channel.id, content: message });
-    setMessage('');
+    createMessageMutation.mutate({ channelId: channel.id, content: msg });
+    return {
+      sent: true,
+    }
   }
 
   useEffect(() => {
@@ -160,6 +289,13 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     }
   }, [wsClient, messages]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const initialValue: Descendant[] = [
+    {
+      type: 'paragraph',
+      children: [{ text: '' }],
+    }
+  ];
+
   return (
     <div>
       <Head>
@@ -180,9 +316,9 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
             <ul className="space-y-1.5">
               {channels.map(({ name, id }) => <li key={`channel_${id}`}>
                 <Link href={`/channels/${id}`}>
-                  <a 
+                  <a
                     className={
-                      channel.id === id 
+                      channel.id === id
                         ? 'flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
                         : 'flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
                     }
@@ -211,22 +347,42 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
               <div ref={messagesEndRef} />
             </div>
           </div>
-
-
-          <form onSubmit={sendMessage} className="flex items-center border-t border-gray-200 px-6 py-4 bg-white gap-4" autoComplete="off">
-            <input
-              id="textInput"
-              className='py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:outline-none focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
-              type='text'
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={waitingToReconnect ? 'Connecting...' : 'Write a message...'}
-              disabled={waitingToReconnect}
-            />
+          <div className='border-t border-gray-200 px-6 py-4 bg-white flex items-center'>
+            <Slate editor={editor} value={initialValue}>
+              <Editable
+                decorate={decorate}
+                renderLeaf={renderLeaf}
+                className='py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:outline-none focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+                id="editor"
+                placeholder={waitingToReconnect ? "WebSocket is Connecting. Please Hold..." : `Message #${channel.name}`}
+                onKeyDown={e => {
+                  if (e.shiftKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    editor.insertText('\n');
+                    return;
+                  }
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if ((e.target as HTMLDivElement).outerText.includes(`Message #${channel.name}`)) return;
+                    const sendingMsg = sendMessage((e.target as HTMLDivElement).outerText);
+                    if (sendingMsg?.sent) {
+                      Transforms.delete(editor, {
+                        at: {
+                          anchor: Editor.start(editor, []),
+                          focus: Editor.end(editor, []),
+                        },
+                      });
+                    }
+                    return;
+                  }
+                }}
+                readOnly={waitingToReconnect}
+              />
+            </Slate>
             <button type="submit" className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800" disabled={waitingToReconnect}>
               Send
             </button>
-          </form>
+          </div>
         </div >
       </main >
     </div >
@@ -261,5 +417,17 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
     },
   };
 }
+
+const Leaf = ({ attributes, children, leaf }: any) => {
+  return (
+    <span
+      {...attributes}
+      className={`${leaf.bold && 'font-bold'} ${leaf.italic && 'italic'} ${leaf.underlined && 'underline'} ${leaf.title && 'text-2xl font-bold my-4'} ${leaf.list && 'pl-4 text-xl'} ${leaf.hr && 'block text-center border-b-2 border-gray-300'} ${leaf.blockquote && 'pl-4 text-gray-400 italic'} ${leaf.code && 'font-mono bg-gray-100 p-1'}`}
+    >
+      {children}
+    </span>
+  )
+}
+
 
 export default ChatPage
