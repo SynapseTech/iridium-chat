@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TextChannel, TextMessage, User } from '@prisma/client'
 import { Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Message from '../../components/message'
 import { getServerAuthSession } from '../../server/common/get-server-auth-session'
 import { trpc } from '../../utils/trpc'
@@ -15,7 +16,7 @@ import { Slate, Editable, withReact } from 'slate-react';
 import { BaseEditor, Descendant, Transforms, Editor } from 'slate'
 import { ReactEditor } from 'slate-react';
 import Prism from 'prismjs';
-import { LoadingMessage } from '../../components/loading'
+import { LoadingMessage } from '../../components/loading';
 
 Prism.languages.markdown = Prism.languages.extend("markup", {});
 Prism.languages.insertBefore("markdown", "prolog", {
@@ -106,6 +107,7 @@ type ChatPageServerSideProps = {
 
 type ChatPageProps = ChatPageServerSideProps;
 
+
 const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const { data: session } = useSession();
 
@@ -158,9 +160,10 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
 
   const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
   const pendingMessage = useRef<(TextMessage & { author: User }) | null>(null);
-  const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id });
+  const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id, start: messages.length });
   const createMessageMutation = trpc.channel.createMessage.useMutation();
   const [loading, setLoading] = useState<boolean>(true);
+  const [getMore, setGetMore] = useState<boolean>(false);
 
   const [channels, setChannels] = useState<TextChannel[]>([]);
   // const createChannelMutation = trpc.channel.create.useMutation();
@@ -171,7 +174,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
    */
   useEffect(() => {
     if (loadMessagesQuery.data) {
-      setMessages(loadMessagesQuery.data);
+      setMessages(loadMessagesQuery.data.concat(messages));
       setLoading(false);
     }
   }, [loadMessagesQuery.data]) // run when data fetch
@@ -201,17 +204,17 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       client.onerror = (e) => console.error(e)
 
       client.onopen = () => {
-        console.log(`[WebSocket] WebSocket Opened`)
+        console.log(`[WebSocket]`, `WebSocket Opened`)
       }
 
       client.onclose = () => {
         if (wsInstance.current) {
           // Connection failed
-          console.log('[WebSocket] WebSocket was closed by Server')
+          console.log('[WebSocket]', 'WebSocket was closed by Server')
         } else {
           // Cleanup initiated from app side, can return here, to not attempt a reconnect
           console.log(
-            '[WebSocket] WebSocket was closed by App Component unmounting',
+            '[WebSocket]', 'WebSocket was closed by App Component unmounting',
           )
           return
         }
@@ -219,7 +222,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         if (waitingToReconnect) return
 
         // Parse event code and log
-        console.log('[WebSocket] WebSocket Closed')
+        console.log('[WebSocket]', 'WebSocket Closed')
 
         // Setting this will trigger a re-run of the effect,
         // cleaning up the current websocket, but not setting
@@ -234,7 +237,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       }
 
       return () => {
-        console.log('[WebSocket] Cleanup WebSocket Connection')
+        console.log('[WebSocket]', 'Cleanup WebSocket Connection')
         // Dereference, so it will set up next time
         wsInstance.current = null
         setClient(undefined)
@@ -301,7 +304,15 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     }
   ];
 
-  const loadingArr = Array(7).fill(0);
+  function handleScroll(e: React.UIEvent<HTMLElement>) {
+    if (e.currentTarget.scrollHeight + e.currentTarget.scrollTop === e.currentTarget.clientHeight) {
+      console.log("on top")
+      setLoading(true);
+      console.log(loading)
+      loadMessagesQuery.refetch();
+    }
+  }
+
   return (
     <div>
       <Head>
@@ -345,13 +356,12 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
             </div>
           </div>
           <div className='flex-grow relative'>
-            <div className={`${loading ? "overflow-y-hidden" : "overflow-y-auto"} flex flex-col-reverse absolute top-0 bottom-0 w-full`}>
+            <div className={`${messages.length === 0 ? "overflow-y-hidden" : "overflow-y-auto"} flex flex-col-reverse absolute top-0 bottom-0 w-full`} onScroll={handleScroll}>
               <div className="grid grid-cols-1 gap-3 justify-end items-stretch">
                 {loading ?
-                  loadingArr.map((idx: number) => <LoadingMessage key={idx} />)
-                  :
-                  messages.map((message, idx) => <Message key={idx} message={message} />)
+                  <LoadingMessage /> : ""
                 }
+                {messages.map((message, idx) => <Message key={idx} message={message} />)}
                 {pendingMessage.current && <Message pending message={pendingMessage.current} />}
               </div>
               <div ref={messagesEndRef} />
