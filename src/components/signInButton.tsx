@@ -19,7 +19,7 @@ const SignInButton: FC<SignInButtonProps> = ({ inNavbar = false, icon }) => {
     return (
         <button onClick={() => {
             if (!isLoggedIn) signIn();
-            else router.push('/chat');
+            else router.push('/channels');
         }} type="button" className={classes}>
             {icon}
             {isLoggedIn ? 'Open App' : 'Sign In'}
