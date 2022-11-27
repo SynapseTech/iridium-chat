@@ -367,15 +367,15 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
               <div ref={messagesEndRef} />
             </div>
           </div>
-          <div className='border-t border-gray-200 px-6 py-4 bg-white flex items-center'>
+          <div className='border-t border-gray-200 px-6 py-4 bg-white flex items-center gap-x-4'>
             <Slate editor={editor} value={initialValue}>
               <Editable
                 decorate={decorate}
                 renderLeaf={renderLeaf}
-                className='py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:outline-none focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
                 id="editor"
                 spellCheck={true}
-                autoCorrect='on'
+                autoCorrect='off'
+                className='form-input py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
                 placeholder={waitingToReconnect ? "WebSocket is Connecting. Please Hold..." : `Message #${channel.name}`}
                 onKeyDown={e => {
                   if (e.shiftKey && e.key === 'Enter') {
