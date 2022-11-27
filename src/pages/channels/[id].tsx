@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TextChannel, TextMessage, User } from '@prisma/client'
-import { Add, Hashtag } from 'iconsax-react'
+import { Add, Hashtag, Trash } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -42,13 +42,14 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const [channels, setChannels] = useState<TextChannel[]>([]);
   const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
   const [createChannelModalOpen, setCreateChannelModalOpen] = useState<boolean>(false);
+  const deleteChannelMutation = trpc.channel.delete.useMutation();
 
   /**
    * Load initial messages using tRPC on page load.
    */
   useEffect(() => {
-    if (loadMessagesQuery.data) {
-      setMessages(loadMessagesQuery.data.concat(messages));
+    if (loadMessagesQuery.data && loading) {
+      setMessages(prev => loadMessagesQuery.data.concat(prev));
       setLoading(false);
     }
   }, [loadMessagesQuery.data]) // run when data fetch
@@ -63,7 +64,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   //WebSocket Magic
   useEffect(() => {
     if (waitingToReconnect) return;
-
     const startSocket = async () => await fetch('/api/socket');
 
     // Only set up the websocket once
@@ -73,14 +73,9 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       wsInstance.current = client
 
       scrollToBottom();
-
       setClient(client)
       client.onerror = (e) => console.error(e)
-
-      client.onopen = () => {
-        console.log(`[WebSocket]`, `WebSocket Opened`)
-      }
-
+      client.onopen = () => console.log(`[WebSocket]`, `WebSocket Opened`);
       client.onclose = () => {
         if (wsInstance.current) {
           // Connection failed
@@ -170,7 +165,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     }
   }, [wsClient, messages]) // eslint-disable-line react-hooks/exhaustive-deps
 
-
   function handleScroll(e: React.UIEvent<HTMLElement>) {
     if (e.currentTarget.scrollHeight + e.currentTarget.scrollTop === e.currentTarget.clientHeight) {
       console.log("on top")
@@ -205,17 +199,25 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           </div>
           <nav className='p-6 w-full flex flex-col flex-wrap'>
             <ul className="space-y-1.5">
-              {channels.map(({ name, id }) => <li key={`channel_${id}`}>
+              {channels.map(({ name, ownerId, id }) => <li key={`channel_${id}`}>
                 <Link href={`/channels/${id}`} >
                   <a
                     className={
                       channel.id === id
-                        ? 'flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
-                        : 'flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
+                        ? 'w-full flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
+                        : 'w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
                     }
                   >
                     <Hashtag color='currentColor' className='w-3.5 h-3.5' />
-                    {name}
+                    <div className='flex-grow'>{name}</div>
+                    {ownerId === session?.user?.id && <Trash color='currentColor' className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600' onClick={() => {
+                      deleteChannelMutation.mutateAsync({ channelId: id }).then(({ success }) => {
+                        if (success) {
+                          router.push('/channels')
+                          loadChannelsQuery.refetch();
+                        }
+                      });
+                    }} />}
                   </a>
                 </Link>
               </li>)}

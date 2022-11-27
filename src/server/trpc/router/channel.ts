@@ -49,6 +49,29 @@ export const channelRouter = t.router({
       // for now, just give access to all channels
       return await ctx.prisma.textChannel.findMany();
     }),
+  delete: authedProcedure
+    .input(z.object({
+      channelId: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const channel = await ctx.prisma.textChannel.findUnique({
+        where: {
+          id: input.channelId,
+        },
+      });
+
+      if (!channel) return { success: false };
+
+      if (channel.ownerId === ctx.session.user.id) {
+        await ctx.prisma.textChannel.delete({
+          where: {
+            id: channel.id,
+          },
+        });
+
+        return { success: true };
+      } else return { success: false };
+    }),
   createMessage: authedProcedure
     .input(z.object({
       channelId: z.string(),
