@@ -1,31 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TextChannel, TextMessage, User } from '@prisma/client'
-import { Hashtag } from 'iconsax-react'
+import { Add, Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Message from '../../components/message'
 import { getServerAuthSession } from '../../server/common/get-server-auth-session'
 import { trpc } from '../../utils/trpc'
 import { prisma } from '../../server/db/client'
 import { useSession } from 'next-auth/react'
-import { BaseEditor, Descendant, Transforms, Editor } from 'slate'
-import { ReactEditor } from 'slate-react';
 import { LoadingMessage } from '../../components/loading';
 import MessageBox from '../../components/messageBox'
-
-type CustomElement = { type: 'paragraph'; children: CustomText[] }
-type CustomText = { text: string }
-
-declare module 'slate' {
-  interface CustomTypes {
-    Editor: BaseEditor & ReactEditor
-    Element: CustomElement
-    Text: CustomText
-  }
-}
+import CreateChannelModal from '../../components/createChannelModal'
+import { useRouter } from 'next/router'
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -36,7 +25,7 @@ type ChatPageProps = ChatPageServerSideProps;
 
 const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const { data: session } = useSession();
-
+  const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const messageContainerRef = useRef<HTMLDivElement | null>(null)
   const wsInstance = useRef<WebSocket | null>(null)
@@ -51,8 +40,8 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const [getMore, setGetMore] = useState<boolean>(false);
 
   const [channels, setChannels] = useState<TextChannel[]>([]);
-  // const createChannelMutation = trpc.channel.create.useMutation();
   const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
+  const [createChannelModalOpen, setCreateChannelModalOpen] = useState<boolean>(false);
 
   /**
    * Load initial messages using tRPC on page load.
@@ -197,6 +186,13 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         <title>Iridium Chat</title>
       </Head>
 
+      <CreateChannelModal open={createChannelModalOpen} onClose={(id?: string) => {
+        setCreateChannelModalOpen(false);
+        if (id) {
+          router.push(`/channels/${id}`);
+        }
+      }}/>
+
       <main className="h-screen w-screen bg-gray-50 dark:bg-slate-900 flex">
         <aside className='hs-sidebar w-64 bg-white border-r border-gray-200 pt-8 pb-10 overflow-y-auto scrollbar-y flex-col'>
           <div className='px-6'>
@@ -210,7 +206,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           <nav className='p-6 w-full flex flex-col flex-wrap'>
             <ul className="space-y-1.5">
               {channels.map(({ name, id }) => <li key={`channel_${id}`}>
-                <Link href={`/channels/${id}`}>
+                <Link href={`/channels/${id}`} >
                   <a
                     className={
                       channel.id === id
@@ -223,6 +219,12 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
                   </a>
                 </Link>
               </li>)}
+              <li>
+                <button onClick={() => setCreateChannelModalOpen(true)} className='flex items-center gap-x-3.5 py-2 px-2.5 text-sm w-full bg-brand-600 hover:bg-brand-700 text-white rounded-md justify-center'>
+                  <Add color='currentColor' className='w-3.5 h-3.5' />
+                  Create Channel
+                </button>
+              </li>
             </ul>
           </nav>
         </aside>
