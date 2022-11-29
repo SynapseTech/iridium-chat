@@ -12,7 +12,7 @@ import { prisma } from '../../server/db/client'
 import { useSession } from 'next-auth/react'
 import { LoadingMessage } from '../../components/loading';
 import MessageBox from '../../components/messageBox';
-import ApplicationSidebar from '../../components/channelList';
+import ApplicationSidebar from '../../components/appSidebar';
 
 type ChatPageServerSideProps = {
   channel: TextChannel;

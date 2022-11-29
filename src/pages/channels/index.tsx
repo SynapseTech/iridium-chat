@@ -1,5 +1,5 @@
 import Head from "next/head";
-import ApplicationSidebar from "../../components/channelList";
+import ApplicationSidebar from "../../components/appSidebar";
 
 const ChannelsPage = () => {
   return (
