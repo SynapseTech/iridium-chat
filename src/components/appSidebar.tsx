@@ -48,26 +48,27 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({ currentChannelId, onC
                 <nav className='p-6 w-full flex flex-col flex-wrap'>
                     <ul className="space-y-1.5">
                         {channels.map(({ name, ownerId, id }) => <li key={`channel_${id}`}>
-                            <Link href={`/channels/${id}`} onClick={() => onChannelSelect?.(id)}>
-                                <a
-                                    className={
-                                        (currentChannelId && currentChannelId === id)
-                                            ? 'w-full flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
-                                            : 'w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
-                                    }
-                                >
-                                    <Hashtag color='currentColor' className='w-3.5 h-3.5' />
-                                    <div className='flex-grow'>{name}</div>
-                                    {ownerId === session?.user?.id && <Trash color='currentColor' className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600' onClick={() => {
-                                        deleteChannelMutation.mutateAsync({ channelId: id }).then(async ({ success }) => {
-                                            if (success) {
-                                                await loadChannelsQuery.refetch();
-                                                await router.push('/channels');
-                                            }
-                                        });
-                                    }} />}
-                                </a>
-                            </Link>
+                            <a
+                                className={
+                                    (currentChannelId && currentChannelId === id)
+                                        ? 'w-full cursor-pointer flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
+                                        : 'w-full cursor-pointer flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
+                                }
+                                onClick={() => {
+                                    router.push(`/channels/${id}`);
+                                }}
+                            >
+                                <Hashtag color='currentColor' className='w-3.5 h-3.5' />
+                                <div className='flex-grow'>{name}</div>
+                                {ownerId === session?.user?.id && <Trash color='currentColor' className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600' onClick={() => {
+                                    deleteChannelMutation.mutateAsync({ channelId: id }).then(async ({ success }) => {
+                                        if (success) {
+                                            await loadChannelsQuery.refetch();
+                                            await router.push('/channels');
+                                        }
+                                    });
+                                }} />}
+                            </a>
                         </li>)}
                         <li>
                             <button onClick={() => setCreateChannelModalOpen(true)} className='flex items-center gap-x-3.5 py-2 px-2.5 text-sm w-full bg-brand-600 hover:bg-brand-700 text-white rounded-md'>
