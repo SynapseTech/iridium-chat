@@ -20,20 +20,22 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({ currentChannelId, onC
     const deleteChannelMutation = trpc.channel.delete.useMutation();
     const router = useRouter();
 
+
+
     /**
      * Load accessible channels using tRPC on page load.
      */
     useEffect(() => {
         if (loadChannelsQuery.data) setChannels(loadChannelsQuery.data);
     }, [loadChannelsQuery.data]) // run when data fetch
-    
+
     return (
         <>
             <CreateChannelModal open={createChannelModalOpen} onClose={async (id?: string) => {
                 setCreateChannelModalOpen(false);
                 await loadChannelsQuery.refetch();
                 if (id) await router.push(`/channels/${id}`);
-            }}/>
+            }} />
             <aside className='hs-sidebar w-64 bg-white border-r border-gray-200 pt-8 pb-10 overflow-y-auto scrollbar-y flex-col'>
                 <div className='px-6'>
                     <Link href='/'>
@@ -69,7 +71,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({ currentChannelId, onC
                         </li>)}
                         <li>
                             <button onClick={() => setCreateChannelModalOpen(true)} className='flex items-center gap-x-3.5 py-2 px-2.5 text-sm w-full bg-brand-600 hover:bg-brand-700 text-white rounded-md'>
-                            <Add color='currentColor' className='w-3.5 h-3.5' />
+                                <Add color='currentColor' className='w-3.5 h-3.5' />
                                 Create Channel
                             </button>
                         </li>

@@ -10,7 +10,7 @@ type CreateChannelModalProps = {
 };
 
 const checkChannelNameErrors = (newChannelName: string): string => {
-    let result: string = '';
+    let result = '';
 
     if (newChannelName.trim().length === 0) result = 'Channel Name must not be empty.';
 
@@ -51,7 +51,7 @@ const CreateChannelModal: FC<CreateChannelModalProps> = ({ open = false, onClose
                         <h3 className="font-bold text-gray-800 dark:text-white">
                             Create a Channel
                         </h3>
-                        <button type="button" className="hs-dropdown-toggle inline-flex flex-shrink-0 justify-center items-center h-8 w-8 rounded-md text-gray-500 hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white transition-all text-sm dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"  onClick={() => close()}>
+                        <button type="button" className="hs-dropdown-toggle inline-flex flex-shrink-0 justify-center items-center h-8 w-8 rounded-md text-gray-500 hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white transition-all text-sm dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" onClick={() => close()}>
                             <span className="sr-only">Close</span>
                             <FontAwesomeIcon icon={faX} className='w-3.5 h-2.5' />
                         </button>

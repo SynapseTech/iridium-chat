@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TextChannel, TextMessage, User } from '@prisma/client'
-import { Hashtag } from 'iconsax-react'
+import { Add, Hashtag, Trash } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head';
 import React, { useEffect, useRef, useState } from 'react'
@@ -12,7 +12,9 @@ import { prisma } from '../../server/db/client'
 import { useSession } from 'next-auth/react'
 import { LoadingMessage } from '../../components/loading';
 import MessageBox from '../../components/messageBox';
-import ApplicationSidebar from '../../components/appSidebar';
+import { useRouter } from 'next/router';
+import CreateChannelModal from '../../components/createChannelModal';
+import Link from 'next/link';
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -33,7 +35,21 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id, start: messages.length });
   const createMessageMutation = trpc.channel.createMessage.useMutation();
   const [loading, setLoading] = useState<boolean>(true);
-  const [getMore, setGetMore] = useState<boolean>(false);
+  const [channels, setChannels] = useState<TextChannel[]>([]);
+  const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
+  const [createChannelModalOpen, setCreateChannelModalOpen] = useState<boolean>(false);
+  const deleteChannelMutation = trpc.channel.delete.useMutation();
+  const router = useRouter();
+
+
+
+  /**
+   * Reset Messages and set loading to true when channel route changes
+   */
+  useEffect(() => {
+    setMessages([]);
+    setLoading(true);
+  }, [router.asPath]);
 
   /**
    * Load initial messages using tRPC on page load.
@@ -43,7 +59,15 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       setMessages(prev => loadMessagesQuery.data.concat(prev));
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadMessagesQuery.data]) // run when data fetch
+
+  /**
+     * Load accessible channels using tRPC on page load.
+     */
+  useEffect(() => {
+    if (loadChannelsQuery.data) setChannels(loadChannelsQuery.data);
+  }, [loadChannelsQuery.data]) // run when data fetch
 
   //WebSocket Magic
   useEffect(() => {
@@ -161,12 +185,56 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       </Head>
 
       <main className="h-screen w-screen bg-gray-50 dark:bg-slate-900 flex">
-        <ApplicationSidebar currentChannelId={channel.id} onChannelSelect={async (channelId) => {
-          if (channelId !== channel.id) {
-            setMessages([]);
-            await loadMessagesQuery.refetch();
-          }
-        }}/>
+        {/* <ApplicationSidebar currentChannelId={channel.id} /> */}
+        <CreateChannelModal open={createChannelModalOpen} onClose={async (id?: string) => {
+          setCreateChannelModalOpen(false);
+          await loadChannelsQuery.refetch();
+          if (id) await router.push(`/channels/${id}`);
+        }} />
+        <aside className='hs-sidebar w-64 bg-white border-r border-gray-200 pt-8 pb-10 overflow-y-auto scrollbar-y flex-col'>
+          <div className='px-6'>
+            <Link href='/'>
+              <a className="flex-none flex w-auto content-center text-xl font-semibold dark:text-white" aria-label="Iridium">
+                <img className="h-8 w-8 inline" alt="iridium logo" src="/iridium_logo.svg" />
+                Iridium
+              </a>
+            </Link>
+          </div>
+          <nav className='p-6 w-full flex flex-col flex-wrap'>
+            <ul className="space-y-1.5">
+              {channels.map(({ name, ownerId, id }) => <li key={`channel_${id}`}>
+                <a
+                  className={
+                    (channel.id && channel.id === id)
+                      ? 'w-full flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
+                      : 'w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
+                  }
+                  onClick={() => {
+                    router.push(`/channels/${id}`);
+                  }}
+                >
+                  <Hashtag color='currentColor' className='w-3.5 h-3.5' />
+                  <div className='flex-grow'>{name}</div>
+                  {ownerId === session?.user?.id && <Trash color='currentColor' className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600' onClick={() => {
+                    deleteChannelMutation.mutateAsync({ channelId: id }).then(async ({ success }) => {
+                      if (success) {
+                        await loadChannelsQuery.refetch();
+                        await router.push('/channels');
+                      }
+                    });
+                  }} />}
+                </a>
+              </li>)}
+              <li>
+                <button onClick={() => setCreateChannelModalOpen(true)} className='flex items-center gap-x-3.5 py-2 px-2.5 text-sm w-full bg-brand-600 hover:bg-brand-700 text-white rounded-md'>
+                  <Add color='currentColor' className='w-3.5 h-3.5' />
+                  Create Channel
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </aside>
+
         <div className='flex-grow flex flex-col'>
           <div className='px-6 py-4 border-b border-gray-200 bg-white flex gap-x-4 content-center'>
             <Hashtag color='currentColor' className='w-7 h-7 opacity-50' />
