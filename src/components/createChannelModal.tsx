@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { ChangeEvent, FC, FormEvent, useState } from "react";
-import { } from "iconsax-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faX } from "@fortawesome/free-solid-svg-icons";
 import { trpc } from "../utils/trpc";
