@@ -36,10 +36,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id, start: messages.length });
   const createMessageMutation = trpc.channel.createMessage.useMutation();
   const [loading, setLoading] = useState<boolean>(true);
-  const [channels, setChannels] = useState<TextChannel[]>([]);
-  const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
-  const [createChannelModalOpen, setCreateChannelModalOpen] = useState<boolean>(false);
-  const deleteChannelMutation = trpc.channel.delete.useMutation();
   const router = useRouter();
 
   /**
@@ -60,13 +56,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadMessagesQuery.data]) // run when data fetch
-
-  /**
-     * Load accessible channels using tRPC on page load.
-     */
-  useEffect(() => {
-    if (loadChannelsQuery.data) setChannels(loadChannelsQuery.data);
-  }, [loadChannelsQuery.data]) // run when data fetch
 
   //WebSocket Magic
   useEffect(() => {
