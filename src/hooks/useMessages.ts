@@ -1,6 +1,6 @@
 import { useWS } from "../contexts/WSProvider";
 import { TextMessage, User } from "@prisma/client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { trpc } from '../utils/trpc';
 
@@ -15,37 +15,44 @@ const useMessages = (channelId: string, onRecieve: (msg: MessageType) => void): 
 
   const wsContext = useWS();
   if (!wsContext) throw new Error('WSContext not found');
-  const waitingToReconnect = wsContext?.connecting;
   const wsClient = wsContext?.ws;
 
   /**
-   * Reset Messages and set loading to true when channel route changes
+   * Reset messages and set loading to true when channel route changes
    */
   useEffect(() => {
     setMessages([]);
     setLoading(true);
   }, [router.asPath]);
 
+  /**
+   * Load messages via tRPC
+   * 
+   * Runs whenever the query's data value changes
+   */
   useEffect(() => {
     if (loadMessagesQuery.data && loading) {
       setMessages(prev => loadMessagesQuery.data.concat(prev));
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadMessagesQuery.data]) // run when data fetch
+  }, [loadMessagesQuery.data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onMessageHandler = useCallback((event: MessageEvent<any>) => {
+    const data: { type: string, data: MessageType } = JSON.parse(event.data);
+
+    if (data.type === 'message') {
+      if (data.data.channelId === channelId && !messages.some(msg => msg.id === data.data.id)) {
+        onRecieve(data.data);
+        setMessages((prevMessages) => prevMessages.concat(data.data));
+      }
+    }
+  }, [])
 
   useEffect(() => {
-    if (wsClient !== undefined) {
-      (wsClient as WebSocket).onmessage = (event) => {
-        const data: { type: string, data: MessageType } = JSON.parse(event.data);
+    wsClient?.addEventListener('message', onMessageHandler)
 
-        if (data.type === 'message') {
-          if (data.data.channelId === channelId && !messages.some(msg => msg.id === data.data.id)) {
-            onRecieve(data.data);
-            setMessages((prevMessages) => prevMessages.concat(data.data));
-          }
-        }
-      };
+    return () => {
+      wsClient?.removeEventListener('message', onMessageHandler)
     }
   }, [wsClient, messages]) // eslint-disable-line react-hooks/exhaustive-deps
 
