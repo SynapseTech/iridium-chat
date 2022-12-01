@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useCallback, useState } from "react";
 import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
 import { BaseEditor, Descendant, Transforms, Editor, createEditor, Text } from 'slate'
@@ -84,7 +85,7 @@ declare module 'slate' {
     Element: CustomElement
     Text: CustomText
   }
-};
+}
 
 const Leaf = ({ attributes, children, leaf }: any) => {
   return (
@@ -104,8 +105,8 @@ type MessageBoxProps = {
 };
 
 const MessageBox: FC<MessageBoxProps> = ({ channelName, connecting, onSend }) => {
-    const [editor] = useState(() => withReact(createEditor()))
-    const decorate = useCallback(([node, path]: any[]) => {
+  const [editor] = useState(() => withReact(createEditor()))
+  const decorate = useCallback(([node, path]: any[]) => {
     const ranges: any[] = []
 
     if (!Text.isText(node)) {
@@ -151,44 +152,27 @@ const MessageBox: FC<MessageBoxProps> = ({ channelName, connecting, onSend }) =>
   ];
 
   const renderLeaf = useCallback((props: any) => <Leaf {...props} />, [])
-    return (
-        <div className='flex items-center gap-x-4'>
-            <Slate editor={editor} value={initialValue}>
-              <Editable
-                decorate={decorate}
-                renderLeaf={renderLeaf}
-                id="editor"
-                spellCheck={true}
-                autoCorrect='off'
-                className='form-input py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
-                placeholder={connecting ? "WebSocket is Connecting. Please Hold..." : `Message ${channelName}`}
-                onKeyDown={e => {
-                  if (e.shiftKey && e.key === 'Enter') {
-                    e.preventDefault();
-                    editor.insertText('\n');
-                    return;
-                  }
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if ((e.target as HTMLDivElement).outerText.includes(`Message ${channelName}`)) return;
-                    const sendingMsg = onSend((e.target as HTMLDivElement).outerText);
-                    if (sendingMsg?.sent) {
-                      Transforms.delete(editor, {
-                        at: {
-                          anchor: Editor.start(editor, []),
-                          focus: Editor.end(editor, []),
-                        },
-                      });
-                    }
-                    return;
-                  }
-                }}
-                readOnly={connecting}
-              />
-            </Slate>
-            <button type="submit" className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800" disabled={connecting} onClick={() => {
-              if ((editor.children[0] as any)?.children[0].text.length === 0) return;
-              const sendingMsg = onSend((editor.children[0] as any)?.children[0].text);
+  return (
+    <div className='flex items-center gap-x-4'>
+      <Slate editor={editor} value={initialValue}>
+        <Editable
+          decorate={decorate}
+          renderLeaf={renderLeaf}
+          id="editor"
+          spellCheck={true}
+          autoCorrect='off'
+          className='form-input py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+          placeholder={connecting ? "WebSocket is Connecting. Please Hold..." : `Message ${channelName}`}
+          onKeyDown={e => {
+            if (e.shiftKey && e.key === 'Enter') {
+              e.preventDefault();
+              editor.insertText('\n');
+              return;
+            }
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if ((e.target as HTMLDivElement).outerText.includes(`Message ${channelName}`)) return;
+              const sendingMsg = onSend((e.target as HTMLDivElement).outerText);
               if (sendingMsg?.sent) {
                 Transforms.delete(editor, {
                   at: {
@@ -197,11 +181,28 @@ const MessageBox: FC<MessageBoxProps> = ({ channelName, connecting, onSend }) =>
                   },
                 });
               }
-            }}>
-              Send
-            </button>
-        </div>
-    );
+              return;
+            }
+          }}
+          readOnly={connecting}
+        />
+      </Slate>
+      <button type="submit" className="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800" disabled={connecting} onClick={() => {
+        if ((editor.children[0] as any)?.children[0].text.length === 0) return;
+        const sendingMsg = onSend((editor.children[0] as any)?.children[0].text);
+        if (sendingMsg?.sent) {
+          Transforms.delete(editor, {
+            at: {
+              anchor: Editor.start(editor, []),
+              focus: Editor.end(editor, []),
+            },
+          });
+        }
+      }}>
+        Send
+      </button>
+    </div>
+  );
 };
 
 export default MessageBox;

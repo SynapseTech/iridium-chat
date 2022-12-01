@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TextChannel, TextMessage, User } from '@prisma/client'
-import { Add, Hashtag, Trash } from 'iconsax-react'
+import { Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head';
 import React, { useEffect, useRef, useState } from 'react'
@@ -13,9 +13,8 @@ import { useSession } from 'next-auth/react'
 import { LoadingMessage } from '../../components/loading';
 import MessageBox from '../../components/messageBox';
 import { useRouter } from 'next/router';
-import CreateChannelModal from '../../components/createChannelModal';
-import Link from 'next/link';
 import ApplicationSidebar from '../../components/appSidebar';
+import { useWS } from '../../contexts/WSProvider';
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -26,10 +25,12 @@ type ChatPageProps = ChatPageServerSideProps;
 const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const { data: session } = useSession();
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
-  const messageContainerRef = useRef<HTMLDivElement | null>(null)
-  const wsInstance = useRef<WebSocket | null>(null)
-  const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
-  const [wsClient, setClient] = useState<WebSocket | undefined>(undefined)
+
+  const wsContext = useWS();
+  if (!wsContext) throw new Error('WSContext not found');
+  const waitingToReconnect = wsContext?.connecting;
+  const wsClient = wsContext?.ws;
+
 
   const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
   const pendingMessage = useRef<(TextMessage & { author: User }) | null>(null);
@@ -57,61 +58,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadMessagesQuery.data]) // run when data fetch
 
-  //WebSocket Magic
-  useEffect(() => {
-    if (waitingToReconnect) return;
-    const startSocket = async () => await fetch('/api/socket');
-
-    // Only set up the websocket once
-    if (!wsInstance.current) {
-      startSocket()
-      const client = new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api/socket`)
-      wsInstance.current = client
-
-      scrollToBottom();
-      setClient(client)
-      client.onerror = (e) => console.error(e)
-      client.onopen = () => console.log(`[WebSocket]`, `WebSocket Opened`);
-      client.onclose = () => {
-        if (wsInstance.current) {
-          // Connection failed
-          console.log('[WebSocket]', 'WebSocket was closed by Server')
-        } else {
-          // Cleanup initiated from app side, can return here, to not attempt a reconnect
-          console.log(
-            '[WebSocket]', 'WebSocket was closed by App Component unmounting',
-          )
-          return
-        }
-
-        if (waitingToReconnect) return
-        console.log('[WebSocket]', 'WebSocket Closed')
-
-        // Setting this will trigger a re-run of the effect,
-        // cleaning up the current websocket, but not setting
-        // up a new one right away
-        setWaitingToReconnect(true);
-
-        // This will trigger another re-run, and because it is false,
-        // the socket will be set up again
-        setTimeout(() => setWaitingToReconnect(false), 5000)
-      }
-
-      return () => {
-        console.log('[WebSocket]', 'Cleanup WebSocket Connection')
-        // Dereference, so it will set up next time
-        wsInstance.current = null
-        setClient(undefined)
-        client.close()
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [waitingToReconnect])
-
-  function scrollToBottom() {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-    messageContainerRef.current?.scrollTo(0, messagesEndRef.current?.offsetTop! + 5 * 16)
-  }
 
   function sendMessage(msg: string) {
     if (msg.trim() === '') return;
@@ -159,9 +105,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
 
   function handleScroll(e: React.UIEvent<HTMLElement>) {
     if (e.currentTarget.scrollHeight + e.currentTarget.scrollTop === e.currentTarget.clientHeight) {
-      console.log("on top")
       setLoading(true);
-      console.log(loading)
       loadMessagesQuery.refetch();
     }
   }
