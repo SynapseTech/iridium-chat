@@ -1,9 +1,11 @@
 import { createContext, ReactNode, useContext } from "react";
 
-const context = createContext<{ ws: WebSocket | undefined, connecting: boolean } | undefined>(undefined);
+export type WSContext = { ws: WebSocket | undefined, connecting: boolean };
 
-export const WSProvider = ({ ws, connecting, children }: { ws: WebSocket | undefined, connecting: boolean, children: ReactNode }) => {
+const context = createContext<WSContext | undefined>(undefined);
+
+export const WSProvider = ({ ws, connecting, children }: WSContext & { children: ReactNode }) => {
   return <context.Provider value={{ ws, connecting }}> {children}</ context.Provider>;
 }
 
-export const useWS = () => useContext(context);
+export const useWS = () => useContext<WSContext | undefined>(context);

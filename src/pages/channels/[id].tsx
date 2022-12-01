@@ -4,7 +4,7 @@ import { TextChannel, TextMessage, User } from '@prisma/client'
 import { Hashtag } from 'iconsax-react'
 import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult, NextPage } from 'next'
 import Head from 'next/head';
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import Message from '../../components/message'
 import { getServerAuthSession } from '../../server/common/get-server-auth-session'
 import { trpc } from '../../utils/trpc'
@@ -12,9 +12,9 @@ import { prisma } from '../../server/db/client'
 import { useSession } from 'next-auth/react'
 import { LoadingMessage } from '../../components/loading';
 import MessageBox from '../../components/messageBox';
-import { useRouter } from 'next/router';
 import ApplicationSidebar from '../../components/appSidebar';
 import { useWS } from '../../contexts/WSProvider';
+import useMessages, { MessageType } from '../../hooks/useMessages';
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -23,41 +23,23 @@ type ChatPageServerSideProps = {
 type ChatPageProps = ChatPageServerSideProps;
 
 const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
-  const { data: session } = useSession();
-  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const createMessageMutation = trpc.channel.createMessage.useMutation();
+
+  const { data: session } = useSession()
 
   const wsContext = useWS();
   if (!wsContext) throw new Error('WSContext not found');
   const waitingToReconnect = wsContext?.connecting;
-  const wsClient = wsContext?.ws;
 
-
-  const [messages, setMessages] = useState<(TextMessage & { author: User })[]>([]);
-  const pendingMessage = useRef<(TextMessage & { author: User }) | null>(null);
-  const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({ channelId: channel.id, start: messages.length });
-  const createMessageMutation = trpc.channel.createMessage.useMutation();
-  const [loading, setLoading] = useState<boolean>(true);
-  const router = useRouter();
-
-  /**
-   * Reset Messages and set loading to true when channel route changes
-   */
-  useEffect(() => {
-    setMessages([]);
-    setLoading(true);
-  }, [router.asPath]);
-
-  /**
-   * Load initial messages using tRPC on page load.
-   */
-  useEffect(() => {
-    if (loadMessagesQuery.data && loading) {
-      setMessages(prev => loadMessagesQuery.data.concat(prev));
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadMessagesQuery.data]) // run when data fetch
-
+  const pendingMessage = useRef<MessageType | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const [messages, loading, loadMessages] = useMessages(channel.id, (msg) => {
+    if ( // todo: eliminate guesswork somehow
+      pendingMessage.current &&
+      msg.authorId === msg.authorId &&
+      msg.content === msg.content
+    ) pendingMessage.current = null;
+  });
 
   function sendMessage(msg: string) {
     if (msg.trim() === '') return;
@@ -75,38 +57,15 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         image: session!.user!.image!,
       }
     };
-    console.log('send', pendingMessage)
     createMessageMutation.mutate({ channelId: channel.id, content: msg });
     return {
       sent: true,
     }
   }
 
-  useEffect(() => {
-    if (wsClient !== undefined) {
-      (wsClient as WebSocket).onmessage = (event) => {
-        const data: { type: string, data: TextMessage & { author: User } } = JSON.parse(event.data);
-
-        if (data.type === 'message') {
-          if (data.data.channelId === channel.id && !messages.some(msg => msg.id === data.data.id)) {
-            if (
-              pendingMessage.current &&
-              data.data.authorId === pendingMessage.current.authorId &&
-              data.data.content === pendingMessage.current.content
-            ) {
-              pendingMessage.current = null;
-            }
-            setMessages((prevMessages) => prevMessages.concat(data.data));
-          }
-        }
-      };
-    }
-  }, [wsClient, messages]) // eslint-disable-line react-hooks/exhaustive-deps
-
   function handleScroll(e: React.UIEvent<HTMLElement>) {
     if (e.currentTarget.scrollHeight + e.currentTarget.scrollTop === e.currentTarget.clientHeight) {
-      setLoading(true);
-      loadMessagesQuery.refetch();
+      loadMessages();
     }
   }
 
@@ -176,3 +135,5 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res, params 
 
 
 export default ChatPage
+
+
