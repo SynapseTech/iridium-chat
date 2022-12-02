@@ -6,7 +6,18 @@ import { trpc } from '../utils/trpc';
 
 export type MessageType = TextMessage & { author: User };
 
-const useMessages = (channelId: string, onRecieve: (msg: MessageType) => void): [MessageType[], boolean, () => void] => {
+/**
+ * Custom hook to handle loading of messages.
+ * 
+ * @param channelId Id of channel to load messages from
+ * @param onRecieve Optional callback when message recieved
+ * 
+ * @returns [An array of messages, boolean indicating whether or not messages
+ * are loading, function to forcefully load more messages]
+ * 
+ * @author Liz Ainslie
+ */
+const useMessages = (channelId: string, onRecieve?: (msg: MessageType) => void): [MessageType[], boolean, () => void] => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
@@ -42,7 +53,7 @@ const useMessages = (channelId: string, onRecieve: (msg: MessageType) => void): 
 
     if (data.type === 'message') {
       if (data.data.channelId === channelId && !messages.some(msg => msg.id === data.data.id)) {
-        onRecieve(data.data);
+        onRecieve?.(data.data);
         setMessages((prevMessages) => prevMessages.concat(data.data));
       }
     }
