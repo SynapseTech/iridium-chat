@@ -161,7 +161,7 @@ const MessageBox: FC<MessageBoxProps> = ({ channelName, connecting, onSend }) =>
           id="editor"
           spellCheck={true}
           autoCorrect='off'
-          className='form-input py-3 px-4 block w-full border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+          className='form-input py-3 px-4 block border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 w-full'
           placeholder={connecting ? "WebSocket is Connecting. Please Hold..." : `Message ${channelName}`}
           onKeyDown={e => {
             if (e.shiftKey && e.key === 'Enter') {

@@ -5,3 +5,7 @@
   padding: 0.25rem;
   display: inline;
 }
+
+.markdown {
+  white-space: pre-wrap;
+}
