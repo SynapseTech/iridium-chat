@@ -1,14 +1,17 @@
-import { authedProcedure, t } from "../trpc";
-import { z } from "zod";
-import { broadcastMessage } from "../../socket";
+import { authedProcedure, t } from '../trpc';
+import { z } from 'zod';
+import { broadcastMessage } from '../../socket';
 
 export const channelRouter = t.router({
   fetchMessages: authedProcedure
-    .input(z.object({ 
-      channelId: z.string(),
-      start: z.number().default(0),
-      count: z.number().default(50),
-    })).query(async ({ input, ctx }) => {
+    .input(
+      z.object({
+        channelId: z.string(),
+        start: z.number().default(0),
+        count: z.number().default(50),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
       const channel = await ctx.prisma.textChannel.findUniqueOrThrow({
         where: {
           id: input.channelId,
@@ -22,7 +25,7 @@ export const channelRouter = t.router({
             take: input.count,
             include: {
               author: true,
-            }
+            },
           },
         },
       });
@@ -30,9 +33,12 @@ export const channelRouter = t.router({
       return channel.messages.reverse();
     }),
   create: authedProcedure
-    .input(z.object({
-      name: z.string()
-    })).mutation(async ({ ctx, input }) => {
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
       const channel = await ctx.prisma.textChannel.create({
         data: {
           name: input.name,
@@ -42,17 +48,18 @@ export const channelRouter = t.router({
 
       return channel;
     }),
-  getAccessible: authedProcedure
-    .query(async ({ ctx }) => {
-      // todo: access perms
+  getAccessible: authedProcedure.query(async ({ ctx }) => {
+    // todo: access perms
 
-      // for now, just give access to all channels
-      return await ctx.prisma.textChannel.findMany();
-    }),
+    // for now, just give access to all channels
+    return await ctx.prisma.textChannel.findMany();
+  }),
   delete: authedProcedure
-    .input(z.object({
-      channelId: z.string(),
-    }))
+    .input(
+      z.object({
+        channelId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const channel = await ctx.prisma.textChannel.findUnique({
         where: {
@@ -73,10 +80,12 @@ export const channelRouter = t.router({
       } else return { success: false };
     }),
   createMessage: authedProcedure
-    .input(z.object({
-      channelId: z.string(),
-      content: z.string(),
-    }))
+    .input(
+      z.object({
+        channelId: z.string(),
+        content: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const message = await ctx.prisma.textMessage.create({
         data: {
@@ -86,7 +95,7 @@ export const channelRouter = t.router({
         },
         include: {
           author: true,
-        }
+        },
       });
 
       broadcastMessage(message);

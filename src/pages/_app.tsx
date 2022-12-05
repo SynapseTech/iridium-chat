@@ -1,22 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/_app.tsx
-import "../styles/globals.css";
-import { SessionProvider } from "next-auth/react";
-import type { AppType } from "next/dist/shared/lib/utils";
-import { trpc } from "../utils/trpc";
+import '../styles/globals.css';
+import { SessionProvider } from 'next-auth/react';
+import type { AppType } from 'next/dist/shared/lib/utils';
+import { trpc } from '../utils/trpc';
 import { useEffect, useRef, useState } from 'react';
-import { WSProvider } from "../contexts/WSProvider";
+import { WSProvider } from '../contexts/WSProvider';
 
 const MyApp: AppType = ({ Component, pageProps }) => {
-
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     import('preline');
   }, []);
 
-  const wsInstance = useRef<WebSocket | null>(null)
-  const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false)
+  const wsInstance = useRef<WebSocket | null>(null);
+  const [waitingToReconnect, setWaitingToReconnect] = useState<boolean>(false);
   const [wsClient, setClient] = useState<WebSocket | undefined>(undefined);
 
   //WebSocket Magic
@@ -26,27 +25,32 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
     // Only set up the websocket once
     if (!wsInstance.current) {
-      startSocket()
-      const client = new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api/socket`)
-      wsInstance.current = client
+      startSocket();
+      const client = new WebSocket(
+        `ws${window.location.protocol === 'https:' ? 's' : ''}://${
+          window.location.host
+        }/api/socket`,
+      );
+      wsInstance.current = client;
 
-      setClient(client)
-      client.onerror = (e) => console.error(e)
+      setClient(client);
+      client.onerror = (e) => console.error(e);
       client.onopen = () => console.log(`[WebSocket]`, `WebSocket Opened`);
       client.onclose = () => {
         if (wsInstance.current) {
           // Connection failed
-          console.log('[WebSocket]', 'WebSocket was closed by Server')
+          console.log('[WebSocket]', 'WebSocket was closed by Server');
         } else {
           // Cleanup initiated from app side, can return here, to not attempt a reconnect
           console.log(
-            '[WebSocket]', 'WebSocket was closed by App Component unmounting',
-          )
-          return
+            '[WebSocket]',
+            'WebSocket was closed by App Component unmounting',
+          );
+          return;
         }
 
-        if (waitingToReconnect) return
-        console.log('[WebSocket]', 'WebSocket Closed')
+        if (waitingToReconnect) return;
+        console.log('[WebSocket]', 'WebSocket Closed');
 
         // Setting this will trigger a re-run of the effect,
         // cleaning up the current websocket, but not setting
@@ -55,21 +59,19 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
         // This will trigger another re-run, and because it is false,
         // the socket will be set up again
-        setTimeout(() => setWaitingToReconnect(false), 5000)
-      }
+        setTimeout(() => setWaitingToReconnect(false), 5000);
+      };
 
       return () => {
-        console.log('[WebSocket]', 'Cleanup WebSocket Connection')
+        console.log('[WebSocket]', 'Cleanup WebSocket Connection');
         // Dereference, so it will set up next time
-        wsInstance.current = null
-        setClient(undefined)
-        client.close()
-      }
+        wsInstance.current = null;
+        setClient(undefined);
+        client.close();
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waitingToReconnect]);
-
-
 
   useEffect(() => {
     if (window.console) {
@@ -98,7 +100,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   .          . .  . .    . .  .     .   
      .  . .     .      .       .  .    
 Iridium Chat: A Synapse Technologies Product. Check out the code at https://github.com/SynapseTech/iridium-chat/.
-		`)
+		`);
     }
   }, []);
 
