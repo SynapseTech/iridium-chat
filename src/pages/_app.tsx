@@ -27,8 +27,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     if (!wsInstance.current) {
       startSocket();
       const client = new WebSocket(
-        `ws${window.location.protocol === 'https:' ? 's' : ''}://${
-          window.location.host
+        `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host
         }/api/socket`,
       );
       wsInstance.current = client;
@@ -74,6 +73,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   }, [waitingToReconnect]);
 
   useEffect(() => {
+    // if (document) {
+    //   document.body.classList.add('dark');
+    // }
     if (window.console) {
       console.log(`
   .  . .  .  . .  .  . .  .  . .  .  .  

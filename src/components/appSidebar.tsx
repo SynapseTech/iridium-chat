@@ -41,7 +41,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
           if (id) await router.push(`/channels/${id}`);
         }}
       />
-      <aside className='hs-sidebar w-64 bg-white border-r border-gray-200 pt-8 pb-10 overflow-y-auto scrollbar-y flex-col'>
+      <aside className='hs-sidebar w-64 bg-white dark:bg-slate-800 border-r border-gray-200 pt-8 pb-10 overflow-y-auto scrollbar-y flex-col'>
         <div className='px-6'>
           <Link href='/'>
             <a

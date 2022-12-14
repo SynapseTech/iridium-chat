@@ -64,6 +64,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       },
     };
     createMessageMutation.mutate({ channelId: channel.id, content: msg });
+
     return {
       sent: true,
     };
@@ -79,25 +80,24 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   }
 
   return (
-    <div>
+    <>
       <Head>
         <title>Iridium Chat</title>
       </Head>
 
-      <main className='h-screen w-screen bg-gray-50 dark:bg-slate-900 flex'>
+      <main className='h-screen w-screen bg-white dark:bg-slate-900 flex'>
         <ApplicationSidebar currentChannelId={channel.id} />
         <div className='flex-grow flex flex-col'>
-          <div className='px-6 py-4 border-b border-gray-200 bg-white flex gap-x-4 content-center'>
-            <Hashtag color='currentColor' className='w-7 h-7 opacity-50' />
+          <div className='px-6 py-4 border-b border-gray-200 flex gap-x-4 content-center'>
+            <Hashtag color='currentColor' className='w-7 h-7 opacity-5' />
             <div className='text-xl font-semibold dark:text-white'>
               {channel.name}
             </div>
           </div>
           <div className='flex-grow relative'>
             <div
-              className={`${
-                messages.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'
-              } flex flex-col-reverse absolute top-0 bottom-0 w-full`}
+              className={`${messages.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'
+                } flex flex-col-reverse absolute top-0 bottom-0 w-full`}
               onScroll={handleScroll}
             >
               <div className='grid grid-cols-1 gap-3 justify-end items-stretch'>
@@ -112,7 +112,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
               <div ref={messagesEndRef} />
             </div>
           </div>
-          <div className='border-t border-gray-200 px-6 py-4 bg-white'>
+          <div className='border-t border-gray-200 px-6 py-4 bg-white dark:bg-slate-800'>
             <MessageBox
               connecting={waitingToReconnect}
               channelName={`#${channel.name}`}
@@ -121,7 +121,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           </div>
         </div>
       </main>
-    </div>
+    </>
   );
 };
 

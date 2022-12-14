@@ -104,13 +104,10 @@ const Leaf = ({ attributes, children, leaf }: any) => {
   return (
     <span
       {...attributes}
-      className={`${leaf.bold && 'font-bold'} ${leaf.italic && 'italic'} ${
-        leaf.underlined && 'underline'
-      } ${leaf.title && 'text-2xl font-bold my-4'} ${
-        leaf.list && 'pl-4 text-xl'
-      } ${leaf.hr && 'block text-center border-b-2 border-gray-300'} ${
-        leaf.blockquote && 'pl-4 text-gray-400 italic'
-      } ${leaf.code && 'font-mono bg-gray-100 p-1'}`}
+      className={`${leaf.bold && 'font-bold'} ${leaf.italic && 'italic'} ${leaf.underlined && 'underline'
+        } ${leaf.title && 'text-2xl font-bold my-4'} ${leaf.list && 'pl-4 text-xl'
+        } ${leaf.hr && 'block text-center border-b-2 border-gray-300'} ${leaf.blockquote && 'pl-4 text-gray-400 italic'
+        } ${leaf.code && 'font-mono bg-gray-100 p-1'}`}
     >
       {children}
     </span>
@@ -184,7 +181,7 @@ const MessageBox: FC<MessageBoxProps> = ({
           id='editor'
           spellCheck={true}
           autoCorrect='off'
-          className='form-input py-3 px-4 block border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 w-full'
+          className='form-input py-3 px-4 block border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-[#DADADA] w-full'
           placeholder={
             connecting
               ? 'WebSocket is Connecting. Please Hold...'
