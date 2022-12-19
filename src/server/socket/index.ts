@@ -16,7 +16,10 @@ const socketHandler = async (wss: WebSocketServer) => {
   });
 };
 
-export const broadcastMessage = (msg: TextMessage & { author: User }) => {
+export const broadcastMessage = (
+  msg: TextMessage & { author: User },
+  nonce: string,
+) => {
   // console.log(msg);
   // console.log(socketClients.value?.size);
   socketClients.value?.forEach((ws) =>
@@ -24,6 +27,7 @@ export const broadcastMessage = (msg: TextMessage & { author: User }) => {
       JSON.stringify({
         type: 'message',
         data: msg,
+        nonce,
       }),
     ),
   );

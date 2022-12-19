@@ -84,6 +84,7 @@ export const channelRouter = t.router({
       z.object({
         channelId: z.string(),
         content: z.string(),
+        nonce: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -98,7 +99,7 @@ export const channelRouter = t.router({
         },
       });
 
-      broadcastMessage(message);
+      broadcastMessage(message, input.nonce);
       return message;
     }),
 });

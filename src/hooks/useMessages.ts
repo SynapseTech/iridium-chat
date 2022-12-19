@@ -19,7 +19,7 @@ export type MessageType = TextMessage & { author: User };
  */
 const useMessages = (
   channelId: string,
-  onRecieve?: (msg: MessageType) => void,
+  onRecieve?: (msg: MessageType, nonce: string) => void,
 ): [MessageType[], boolean, () => void] => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -61,14 +61,16 @@ const useMessages = (
   }, [loadMessagesQuery.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onMessageHandler = useCallback((event: MessageEvent<any>) => {
-    const data: { type: string; data: MessageType } = JSON.parse(event.data);
+    const data: { type: string; data: MessageType; nonce: string } = JSON.parse(
+      event.data,
+    );
 
     if (data.type === 'message') {
       if (
         data.data.channelId === channelId &&
         !messages.some((msg) => msg.id === data.data.id)
       ) {
-        onRecieve?.(data.data);
+        onRecieve?.(data.data, data.nonce);
         setMessages((prevMessages) => prevMessages.concat(data.data));
       }
     }

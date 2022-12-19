@@ -36,16 +36,17 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   const waitingToReconnect = wsContext?.connecting;
 
   const pendingMessage = useRef<MessageType | null>(null);
+  const pendingNonce = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const [messages, loading, loadMessages] = useMessages(channel.id, (msg) => {
-    if (
-      // todo: eliminate guesswork somehow
-      pendingMessage.current &&
-      msg.authorId === msg.authorId &&
-      msg.content === msg.content
-    )
-      pendingMessage.current = null;
-  });
+  const [messages, loading, loadMessages] = useMessages(
+    channel.id,
+    (msg, nonce) => {
+      if (pendingNonce.current === nonce) {
+        pendingNonce.current = null;
+        pendingMessage.current = null;
+      }
+    },
+  );
 
   function sendMessage(msg: string) {
     if (msg.trim() === '') return;
@@ -63,7 +64,13 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         image: session!.user!.image!,
       },
     };
-    createMessageMutation.mutate({ channelId: channel.id, content: msg });
+
+    (pendingNonce.current = window.crypto.randomUUID()),
+      createMessageMutation.mutate({
+        channelId: channel.id,
+        content: msg,
+        nonce: pendingNonce.current,
+      });
 
     return {
       sent: true,
@@ -96,8 +103,9 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
           </div>
           <div className='flex-grow relative'>
             <div
-              className={`${messages.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'
-                } flex flex-col-reverse absolute top-0 bottom-0 w-full`}
+              className={`${
+                messages.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'
+              } flex flex-col-reverse absolute top-0 bottom-0 w-full`}
               onScroll={handleScroll}
             >
               <div className='grid grid-cols-1 gap-3 justify-end items-stretch'>
