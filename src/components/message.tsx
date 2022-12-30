@@ -25,22 +25,22 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
         />
         <div className='flex flex-col'>
           <div className='flex items-end gap-x-3'>
-            <span className='font-bold text-black dark:text-white'>{message.author.name}</span>
+            <span className='font-bold text-black dark:text-white'>
+              {message.author.name}
+            </span>
             <span className='text-slate-700 dark:text-slate-400 text-sm'>
               {new Date(message.createdTimestamp).toLocaleString()}
             </span>
           </div>
           {/* eslint-disable-next-line react/no-children-prop */}
-          <div className="text-black dark:text-[#DADADA]">
-            <Markdown
-              children={message.content}
-              className={MarkdownCSS.markdown}
-              skipHtml
-            />
+          <div className='text-black dark:text-[#DADADA]'>
+            <Markdown className={MarkdownCSS.markdown} skipHtml>
+              {message.content}
+            </Markdown>
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 
