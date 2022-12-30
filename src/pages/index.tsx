@@ -5,6 +5,7 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import SignInButton from '../components/signInButton';
 import Nav from '../components/nav';
+import SyntechLogo from '../components/syntechLogo';
 
 const Home: NextPage = () => {
   return (
@@ -57,7 +58,8 @@ const Home: NextPage = () => {
           </div>
         </main>
         <footer className='mt-auto text-center py-5'>
-          <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 gap-x-2 flex items-center justify-center'>
+            <SyntechLogo className='h-4 w-4 text-gray-400' />
             <p className='text-sm text-gray-400'>
               Crafted with love by{' '}
               <a
