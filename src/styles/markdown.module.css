@@ -7,6 +7,16 @@
   display: inline;
 }
 
+.markdown a {
+  --tw-text-opacity: 1;
+  color: rgb(59 130 246 / var(--tw-text-opacity));
+  font-weight: 700;
+}
+
+.markdown a:hover  {
+  text-decoration-line: underline;
+}
+
 .markdown {
   white-space: pre-wrap;
 }

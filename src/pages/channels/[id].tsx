@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TextChannel, TextMessage, User } from '@prisma/client';
+import { TextChannel } from '@prisma/client';
 import { Hashtag } from 'iconsax-react';
 import {
   GetServerSideProps,
@@ -96,16 +96,15 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         <ApplicationSidebar currentChannelId={channel.id} />
         <div className='flex-grow flex flex-col'>
           <div className='px-6 py-4 border-b border-gray-200 flex gap-x-4 content-center'>
-            <Hashtag color='currentColor' className='w-7 h-7 opacity-5' />
+            <Hashtag color='currentColor' className='w-7 h-7 dark:text-white' />
             <div className='text-xl font-semibold dark:text-white'>
               {channel.name}
             </div>
           </div>
           <div className='flex-grow relative'>
             <div
-              className={`${
-                messages.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'
-              } flex flex-col-reverse absolute top-0 bottom-0 w-full`}
+              className={`${messages.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'
+                } flex flex-col-reverse absolute top-0 bottom-0 w-full`}
               onScroll={handleScroll}
             >
               <div className='grid grid-cols-1 gap-3 justify-end items-stretch'>

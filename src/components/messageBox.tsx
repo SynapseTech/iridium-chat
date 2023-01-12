@@ -64,16 +64,16 @@ Prism.languages.insertBefore('markdown', 'prolog', {
     lookbehind: !0,
     inside: { punctuation: /^[*_]|[*_]$/ },
   },
-  // url: {
-  //   pattern: /!?\[[^\]]+\](?:\([^\s)]+(?:[\t ]+"(?:\\.|[^"\\])*")?\)| ?\[[^\]\n]*\])/,
-  //   inside: {
-  //     variable: {
-  //       pattern: /(!?\[)[^\]]+(?=\]$)/,
-  //       lookbehind: !0
-  //     },
-  //     string: { pattern: /"(?:\\.|[^"\\])*"(?=\)$)/ }
-  //   }
-  // }
+  url: {
+    pattern: /!?\[[^\]]+\](?:\([^\s)]+(?:[\t ]+"(?:\\.|[^"\\])*")?\)| ?\[[^\]\n]*\])/,
+    inside: {
+      variable: {
+        pattern: /(!?\[)[^\]]+(?=\]$)/,
+        lookbehind: !0
+      },
+      string: { pattern: /"(?:\\.|[^"\\])*"(?=\)$)/ }
+    }
+  }
 });
 
 (Prism.languages.markdown as any).bold.inside.url = Prism.util.clone(
@@ -181,7 +181,7 @@ const MessageBox: FC<MessageBoxProps> = ({
           id='editor'
           spellCheck={true}
           autoCorrect='off'
-          className='form-input py-3 px-4 block border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-800 dark:border-gray-700 dark:text-[#DADADA] w-full'
+          className='form-input py-3 px-4 block border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-700 dark:border-gray-600 dark:text-[#DADADA] w-full'
           placeholder={
             connecting
               ? 'WebSocket is Connecting. Please Hold...'
