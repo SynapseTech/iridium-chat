@@ -1,6 +1,10 @@
 import { authedProcedure, t } from '../trpc';
 import { z } from 'zod';
 import { broadcastMessage } from '../../socket';
+import { JSDOM } from 'jsdom';
+
+
+export type RawEmbed = { title: string; description: string; image: string; url: string; };
 
 export const channelRouter = t.router({
   fetchMessages: authedProcedure
@@ -30,7 +34,45 @@ export const channelRouter = t.router({
         },
       });
 
-      return channel.messages.reverse();
+      const messages = Promise.all(channel.messages.reverse().map(async (message) => {
+        const URLRegex = /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/gm;
+        const URLs: string[] = [];
+        let m;
+        while ((m = URLRegex.exec(message.content)) !== null) {
+          // This is necessary to avoid infinite loops with zero-width matches
+          if (m.index === URLRegex.lastIndex) {
+            URLRegex.lastIndex++;
+          }
+
+          // The result can be accessed through the `m`-variable.
+          m.forEach((match, groupIndex) => {
+            if (groupIndex === 0) URLs.push(match);
+          });
+        }
+
+        const URLEmbeds: Promise<(RawEmbed | undefined)[]> = Promise.all(URLs.map(async (url) => {
+          try {
+            const _data = await fetch(url);
+            const html = await _data.text();
+            const doc = (new JSDOM(html)).window.document;
+            const title = (doc.head.querySelector('meta[property="og:title"]') as HTMLMetaElement)?.content ?? doc.title;
+            const description = (doc.head.querySelector('meta[property="og:description"]') as HTMLMetaElement)?.content ?? (doc.head.querySelector('meta[name="description"]') as HTMLMetaElement)?.content;
+            const image = (doc.head.querySelector('meta[property="og:image"]') as HTMLMetaElement)?.content ?? (doc.head.querySelector('meta[name="twitter:image"]') as HTMLMetaElement)?.content;
+            return { title, description, image, url };
+          } catch (e) {
+            return;
+          }
+        }));
+
+        const embeds = await (await URLEmbeds).filter((embed) => embed !== undefined);
+
+        return {
+          ...message,
+          embeds,
+        }
+      }));
+
+      return await messages;
     }),
   create: authedProcedure
     .input(
