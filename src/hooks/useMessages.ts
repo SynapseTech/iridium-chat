@@ -3,8 +3,9 @@ import { TextMessage, User } from '@prisma/client';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { trpc } from '../utils/trpc';
+import { RawEmbed } from '../server/trpc/router/channel';
 
-export type MessageType = TextMessage & { author: User };
+export type MessageType = TextMessage & { author: User, embeds: RawEmbed[] };
 
 /**
  * Custom hook to handle loading of messages.
@@ -60,6 +61,7 @@ const useMessages = (
     }
   }, [loadMessagesQuery.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onMessageHandler = useCallback((event: MessageEvent<any>) => {
     const data: { type: string; data: MessageType; nonce: string } = JSON.parse(
       event.data,
@@ -74,6 +76,7 @@ const useMessages = (
         setMessages((prevMessages) => prevMessages.concat(data.data));
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

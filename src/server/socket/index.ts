@@ -1,6 +1,7 @@
 import { TextMessage, User } from '@prisma/client';
 import WebSocket, { WebSocketServer } from 'ws';
 import { GlobalRef } from '../../utils/globals';
+import { MessageType } from '../../hooks/useMessages';
 
 export const socketClients = new GlobalRef<Set<WebSocket>>('socketClients');
 
@@ -17,7 +18,7 @@ const socketHandler = async (wss: WebSocketServer) => {
 };
 
 export const broadcastMessage = (
-  msg: TextMessage & { author: User },
+  msg: MessageType,
   nonce: string,
 ) => {
   // console.log(msg);

@@ -6,6 +6,8 @@ import { JSDOM } from 'jsdom';
 
 export type RawEmbed = { title: string; description: string; image: string; url: string; };
 
+const URLRegex = /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/gm;
+
 export const channelRouter = t.router({
   fetchMessages: authedProcedure
     .input(
@@ -35,7 +37,6 @@ export const channelRouter = t.router({
       });
 
       const messages = Promise.all(channel.messages.reverse().map(async (message) => {
-        const URLRegex = /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/gm;
         const URLs: string[] = [];
         let m;
         while ((m = URLRegex.exec(message.content)) !== null) {
@@ -50,7 +51,7 @@ export const channelRouter = t.router({
           });
         }
 
-        const URLEmbeds: Promise<(RawEmbed | undefined)[]> = Promise.all(URLs.map(async (url) => {
+        const URLEmbeds: Promise<RawEmbed[]> = Promise.all(URLs.map(async (url) => {
           try {
             const _data = await fetch(url);
             const html = await _data.text();
@@ -60,11 +61,11 @@ export const channelRouter = t.router({
             const image = (doc.head.querySelector('meta[property="og:image"]') as HTMLMetaElement)?.content ?? (doc.head.querySelector('meta[name="twitter:image"]') as HTMLMetaElement)?.content;
             return { title, description, image, url };
           } catch (e) {
-            return;
+            return { title: '', description: '', image: '', url: '' };
           }
         }));
 
-        const embeds = await (await URLEmbeds).filter((embed) => embed !== undefined);
+        const embeds = await (await URLEmbeds).filter((embed) => embed.url.length !== 0);
 
         return {
           ...message,
@@ -141,7 +142,38 @@ export const channelRouter = t.router({
         },
       });
 
-      broadcastMessage(message, input.nonce);
+      const URLs: string[] = [];
+      let m;
+      while ((m = URLRegex.exec(message.content)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === URLRegex.lastIndex) {
+          URLRegex.lastIndex++;
+        }
+
+        // The result can be accessed through the `m`-variable.
+        m.forEach((match, groupIndex) => {
+          if (groupIndex === 0) URLs.push(match);
+        });
+      }
+
+      const URLEmbeds: Promise<RawEmbed[]> = Promise.all(URLs.map(async (url) => {
+        try {
+          const _data = await fetch(url);
+          const html = await _data.text();
+          const doc = (new JSDOM(html)).window.document;
+          const title = (doc.head.querySelector('meta[property="og:title"]') as HTMLMetaElement)?.content ?? doc.title;
+          const description = (doc.head.querySelector('meta[property="og:description"]') as HTMLMetaElement)?.content ?? (doc.head.querySelector('meta[name="description"]') as HTMLMetaElement)?.content;
+          const image = (doc.head.querySelector('meta[property="og:image"]') as HTMLMetaElement)?.content ?? (doc.head.querySelector('meta[name="twitter:image"]') as HTMLMetaElement)?.content;
+          return { title, description, image, url };
+        } catch (e) {
+          return { title: '', description: '', image: '', url: '' };
+        }
+      }));
+
+      const embeds = await (await URLEmbeds).filter((embed) => embed.url.length !== 0);
+
+      const finalMsg = { ...message, embeds: embeds };
+      broadcastMessage(finalMsg, input.nonce);
       return message;
     }),
 });

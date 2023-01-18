@@ -63,6 +63,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         emailVerified: new Date(),
         image: session!.user!.image!,
       },
+      embeds: [],
     };
 
     (pendingNonce.current = window.crypto.randomUUID()),

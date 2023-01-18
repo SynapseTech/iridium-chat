@@ -22,7 +22,7 @@ const socketBinder = async (req: NextApiRequest, res: NextApiResponse) => {
 
       socketHandler(wss);
     }
-  } else res.end('Fuck off.');
+  } else res.end('This is not a public endpoint.');
 };
 
 export default socketBinder;

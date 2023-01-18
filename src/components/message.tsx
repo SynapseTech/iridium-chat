@@ -1,24 +1,25 @@
-import { TextMessage, User } from '@prisma/client';
 import classNames from 'classnames';
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import Markdown from 'react-markdown';
 import MarkdownCSS from '../styles/markdown.module.css';
 import Link from 'next/link';
 import remarkGfm from 'remark-gfm';
-import { RawEmbed } from '../server/trpc/router/channel';
+import { MessageType } from '../hooks/useMessages';
+import { Trash } from 'iconsax-react';
 
 type MessageProps = {
-  message: TextMessage & {
-    author: User;
-    embeds: RawEmbed[]
-  };
+  message: MessageType;
   pending?: boolean;
 };
 
 const Message: FC<MessageProps> = ({ message, pending = false }) => {
+  const [hovered, setHovered] = useState(false);
+
   return (
     <div
-      className={classNames('py-2 px-6', { 'opacity-50': pending })}
+      className={classNames('py-2 px-6 hover:bg-gray-100', { 'opacity-50': pending })}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       id={`message_${message.id}`}
     >
       <div className='flex gap-x-3'>
@@ -35,6 +36,15 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
             <span className='text-slate-700 dark:text-slate-400 text-sm'>
               {new Date(message.createdTimestamp).toLocaleString()}
             </span>
+            <div className={classNames('h-4 bg-gray-300 rounded justify-center items-center', { 'hidden': !hovered })}>
+              <Trash
+                color='currentColor'
+                className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600'
+                onClick={() => {
+                  // deleteMessageMutation
+                }}
+              />
+            </div>
           </div>
           {/* eslint-disable-next-line react/no-children-prop */}
           <div className='text-black dark:text-[#DADADA]'>
@@ -43,7 +53,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
             </Markdown>
           </div>
           <div className='flex flex-col gap-y-2'>
-            {pending === false ? message.embeds.map(({ title, description, url }, index) => (
+            {message.embeds ? message.embeds.map(({ title, description, url }, index) => (
               <div className='dark:bg-slate-700 bg-gray-300 rounded-xl dark:text-white w-[500px] py-1' key={index}>
                 <div className='p-4 flex-col flex'>
                   <p className='text-blue-500 font-bold text-xl hover:underline'><Link href={url}>{title}</Link></p>
