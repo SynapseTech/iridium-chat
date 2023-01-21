@@ -1,6 +1,6 @@
 import { authedProcedure, t } from '../trpc';
 import { z } from 'zod';
-import { broadcastMessage } from '../../socket';
+import { broadcastEvent, broadcastMessage } from '../../socket';
 import { JSDOM } from 'jsdom';
 
 
@@ -175,5 +175,31 @@ export const channelRouter = t.router({
       const finalMsg = { ...message, embeds: embeds };
       broadcastMessage(finalMsg, input.nonce);
       return message;
+    }),
+  deleteMessage: authedProcedure
+    .input(
+      z.object({
+        messageId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const message = await ctx.prisma.textMessage.findUnique({
+        where: {
+          id: input.messageId,
+        },
+      });
+
+      if (!message) return { success: false };
+
+      if (message.authorId === ctx.session.user.id) {
+        await ctx.prisma.textMessage.delete({
+          where: {
+            id: message.id,
+          },
+        });
+
+        broadcastEvent('deleteMessage', { id: message.id });
+        return { success: true }
+      } else return { success: false };
     }),
 });

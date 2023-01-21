@@ -26,12 +26,18 @@ export const broadcastMessage = (
   socketClients.value?.forEach((ws) =>
     ws.send(
       JSON.stringify({
-        type: 'message',
+        type: 'createMessage',
         data: msg,
         nonce,
       }),
     ),
   );
+};
+export const broadcastEvent = (
+  event: string,
+  data: any,
+) => {
+  socketClients.value?.forEach((ws) => ws.send(JSON.stringify({ type: event, data })));
 };
 
 export default socketHandler;

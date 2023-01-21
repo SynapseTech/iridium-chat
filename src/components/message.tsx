@@ -5,7 +5,8 @@ import MarkdownCSS from '../styles/markdown.module.css';
 import Link from 'next/link';
 import remarkGfm from 'remark-gfm';
 import { MessageType } from '../hooks/useMessages';
-import { Trash } from 'iconsax-react';
+import { MessageEdit, Trash } from 'iconsax-react';
+import { trpc } from '../utils/trpc';
 
 type MessageProps = {
   message: MessageType;
@@ -14,6 +15,7 @@ type MessageProps = {
 
 const Message: FC<MessageProps> = ({ message, pending = false }) => {
   const [hovered, setHovered] = useState(false);
+  const deleteMessageMutation = trpc.channel.deleteMessage.useMutation();
 
   return (
     <div
@@ -36,12 +38,25 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
             <span className='text-slate-700 dark:text-slate-400 text-sm'>
               {new Date(message.createdTimestamp).toLocaleString()}
             </span>
-            <div className={classNames('h-4 bg-gray-300 rounded justify-center items-center', { 'hidden': !hovered })}>
+            <div className={classNames('h-4 bg-gray-300 rounded justify-center items-center flex flex-row gap-x-1', { 'hidden': !hovered })}>
+              <MessageEdit
+                color='currentColor'
+                className='w-3.5 h-3.5 cursor-pointer text-gray-500 hover:text-gray-600'
+                onClick={() => {
+                  // Edit Message Function Here
+                }}
+              />
               <Trash
                 color='currentColor'
                 className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600'
                 onClick={() => {
-                  // deleteMessageMutation
+                  deleteMessageMutation
+                    .mutateAsync({ messageId: message.id })
+                    .then(async ({ success }) => {
+                      if (success) {
+                        return;
+                      }
+                    });
                 }}
               />
             </div>

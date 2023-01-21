@@ -63,11 +63,13 @@ const useMessages = (
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onMessageHandler = useCallback((event: MessageEvent<any>) => {
+    console.log('Message event recieved');
+    console.log(event);
     const data: { type: string; data: MessageType; nonce: string } = JSON.parse(
       event.data,
     );
 
-    if (data.type === 'message') {
+    if (data.type === 'createMessage') {
       if (
         data.data.channelId === channelId &&
         !messages.some((msg) => msg.id === data.data.id)
@@ -76,7 +78,19 @@ const useMessages = (
         setMessages((prevMessages) => prevMessages.concat(data.data));
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    if (data.type === 'deleteMessage') {
+      console.log('deleteMessage event recieved');
+      setMessages((prev) => {
+        const index = prev.findIndex((msg) => msg.id === data.data.id);
+        if (index !== -1) {
+          prev.splice(index, 1);
+          return prev;
+        }
+        return prev;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
