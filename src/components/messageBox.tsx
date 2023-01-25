@@ -117,6 +117,8 @@ const Leaf = ({ attributes, children, leaf }: any) => {
 type MessageBoxProps = {
   channelName: string;
   connecting: boolean;
+  content?: string;
+  editing?: { v: boolean, setEditing?: (v: boolean) => void, content: string, };
   onSend: (msg: string) => { sent: boolean } | undefined;
 };
 
@@ -124,6 +126,7 @@ const MessageBox: FC<MessageBoxProps> = ({
   channelName,
   connecting,
   onSend,
+  editing = { v: false, content: '' },
 }) => {
   const [editor] = useState(() => withReact(createEditor()));
   const decorate = useCallback(([node, path]: any[]) => {
@@ -167,7 +170,7 @@ const MessageBox: FC<MessageBoxProps> = ({
   const initialValue: Descendant[] = [
     {
       type: 'paragraph',
-      children: [{ text: '' }],
+      children: [{ text: editing.content.length === 0 ? '' : editing.content }],
     },
   ];
 
@@ -178,14 +181,13 @@ const MessageBox: FC<MessageBoxProps> = ({
         <Editable
           decorate={decorate}
           renderLeaf={renderLeaf}
-          id='editor'
           spellCheck={true}
           autoCorrect='off'
           className='form-input py-3 px-4 block border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-700 dark:border-gray-600 dark:text-[#DADADA] w-full'
           placeholder={
             connecting
               ? 'WebSocket is Connecting. Please Hold...'
-              : `Message ${channelName}`
+              : (editing.v ? '' : `Message ${channelName}`)
           }
           onKeyDown={(e) => {
             if (e.shiftKey && e.key === 'Enter') {
@@ -197,7 +199,7 @@ const MessageBox: FC<MessageBoxProps> = ({
               e.preventDefault();
               if (
                 (e.target as HTMLDivElement).outerText.includes(
-                  `Message ${channelName}`,
+                  (editing.v ? '' : `Message ${channelName}`),
                 )
               )
                 return;
@@ -216,28 +218,60 @@ const MessageBox: FC<MessageBoxProps> = ({
           readOnly={connecting}
         />
       </Slate>
-      <button
-        type='submit'
-        className='py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800'
-        disabled={connecting}
-        onClick={() => {
-          if ((editor.children[0] as any)?.children[0].text.length === 0)
-            return;
-          const sendingMsg = onSend(
-            (editor.children[0] as any)?.children[0].text,
-          );
-          if (sendingMsg?.sent) {
-            Transforms.delete(editor, {
-              at: {
-                anchor: Editor.start(editor, []),
-                focus: Editor.end(editor, []),
-              },
-            });
-          }
-        }}
-      >
-        Send
-      </button>
+      {!editing.v ? (
+        <button
+          type='submit'
+          className='py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800'
+          disabled={connecting}
+          onClick={() => {
+            if ((editor.children[0] as any)?.children[0].text.length === 0)
+              return;
+            const sendingMsg = onSend(
+              (editor.children[0] as any)?.children[0].text,
+            );
+            if (sendingMsg?.sent) {
+              Transforms.delete(editor, {
+                at: {
+                  anchor: Editor.start(editor, []),
+                  focus: Editor.end(editor, []),
+                },
+              });
+            }
+          }}
+        >
+          Send
+        </button>
+      ) : (
+        <>
+          <button
+            type='submit'
+            className='py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800'
+            disabled={connecting}
+            onClick={() => {
+              if ((editor.children[0] as any)?.children[0].text.length === 0)
+                return;
+              const sendingMsg = onSend(
+                (editor.children[0] as any)?.children[0].text,
+              );
+              if (sendingMsg?.sent) {
+                editing.setEditing?.(false);
+              }
+            }}
+          >
+            Save
+          </button>
+          <button
+            type='submit'
+            className='py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-red-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-red-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800'
+            disabled={connecting}
+            onClick={() => {
+              editing.setEditing?.(false);
+            }}
+          >
+            Cancel
+          </button>
+        </>
+      )}
     </div>
   );
 };

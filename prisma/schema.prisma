@@ -84,6 +84,7 @@ model TextMessage {
   id String @id @default(cuid())
   content String
   createdTimestamp DateTime @default(now())
+  //Todo: editedTimestamp DateTime?
   channelId String
   channel TextChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   authorId String

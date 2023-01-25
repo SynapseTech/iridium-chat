@@ -63,8 +63,6 @@ const useMessages = (
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onMessageHandler = useCallback((event: MessageEvent<any>) => {
-    console.log('Message event recieved');
-    console.log(event);
     const data: { type: string; data: MessageType; nonce: string } = JSON.parse(
       event.data,
     );
@@ -80,11 +78,22 @@ const useMessages = (
     }
 
     if (data.type === 'deleteMessage') {
-      console.log('deleteMessage event recieved');
       setMessages((prev) => {
         const index = prev.findIndex((msg) => msg.id === data.data.id);
         if (index !== -1) {
           prev.splice(index, 1);
+          return prev;
+        }
+        return prev;
+      });
+    }
+
+    if (data.type === 'editMessage') {
+      onRecieve?.(data.data, data.nonce);
+      setMessages((prev) => {
+        const index = prev.findIndex((msg) => msg.id === data.data.id);
+        if (index !== -1) {
+          prev[index] = data.data;
           return prev;
         }
         return prev;

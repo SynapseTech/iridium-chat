@@ -173,6 +173,7 @@ export const channelRouter = t.router({
       const embeds = await (await URLEmbeds).filter((embed) => embed.url.length !== 0);
 
       const finalMsg = { ...message, embeds: embeds };
+
       broadcastMessage(finalMsg, input.nonce);
       return message;
     }),
@@ -199,6 +200,41 @@ export const channelRouter = t.router({
         });
 
         broadcastEvent('deleteMessage', { id: message.id });
+        return { success: true }
+      } else return { success: false };
+    }),
+  editMessage: authedProcedure
+    .input(
+      z.object({
+        messageId: z.string(),
+        content: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const message = await ctx.prisma.textMessage.findUnique({
+        where: {
+          id: input.messageId,
+        },
+        include: {
+          author: true,
+        },
+      });
+
+      if (!message) return { success: false };
+
+      if (message.authorId === ctx.session.user.id) {
+        await ctx.prisma.textMessage.update({
+          where: {
+            id: message.id,
+          },
+          data: {
+            content: input.content,
+            //Edited Timestamps need to be added to the database/
+            //editedTimestamp: new Date(),
+          },
+        });
+
+        broadcastEvent('editMessage', message);
         return { success: true }
       } else return { success: false };
     }),

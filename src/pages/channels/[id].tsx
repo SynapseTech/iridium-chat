@@ -111,7 +111,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
               <div className='grid grid-cols-1 gap-3 justify-end items-stretch'>
                 {loading ? <LoadingMessage /> : ''}
                 {messages.map((message, idx) => (
-                  <Message key={idx} message={message} />
+                  <Message key={idx} message={message} channel={channel} />
                 ))}
                 {pendingMessage.current && (
                   <Message pending message={pendingMessage.current} />

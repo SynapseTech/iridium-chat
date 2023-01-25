@@ -7,15 +7,29 @@ import remarkGfm from 'remark-gfm';
 import { MessageType } from '../hooks/useMessages';
 import { MessageEdit, Trash } from 'iconsax-react';
 import { trpc } from '../utils/trpc';
+import { useSession } from 'next-auth/react';
+import { TextChannel } from '@prisma/client';
+import MessageBox from './messageBox';
 
 type MessageProps = {
   message: MessageType;
   pending?: boolean;
+  channel?: TextChannel;
 };
 
 const Message: FC<MessageProps> = ({ message, pending = false }) => {
   const [hovered, setHovered] = useState(false);
   const deleteMessageMutation = trpc.channel.deleteMessage.useMutation();
+  const editMessageMutation = trpc.channel.editMessage.useMutation();
+  const { data: session } = useSession();
+  const [editing, setEditing] = useState(false);
+
+  function editMsg(msg: string) {
+    editMessageMutation.mutate({ messageId: message.id, content: msg })
+    return {
+      sent: true,
+    }
+  }
 
   return (
     <div
@@ -36,36 +50,42 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
               {message.author.name}
             </span>
             <span className='text-slate-700 dark:text-slate-400 text-sm'>
-              {new Date(message.createdTimestamp).toLocaleString()}
+              {new Date(message.createdTimestamp).toLocaleString()} {/*{message.editedTimestamp ? `(Edited) ${new Date(message.createdTimestamp).toLocaleString()}` : ''} */}
             </span>
-            <div className={classNames('h-4 bg-gray-300 rounded justify-center items-center flex flex-row gap-x-1', { 'hidden': !hovered })}>
-              <MessageEdit
-                color='currentColor'
-                className='w-3.5 h-3.5 cursor-pointer text-gray-500 hover:text-gray-600'
-                onClick={() => {
-                  // Edit Message Function Here
-                }}
-              />
-              <Trash
-                color='currentColor'
-                className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600'
-                onClick={() => {
-                  deleteMessageMutation
-                    .mutateAsync({ messageId: message.id })
-                    .then(async ({ success }) => {
-                      if (success) {
-                        return;
-                      }
-                    });
-                }}
-              />
-            </div>
+            {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
+            {message.author.id === session!.user!.id && !pending ? (
+              <div className={classNames('h-4 bg-gray-300 rounded justify-center items-center flex flex-row gap-x-1', { 'hidden': !hovered })}>
+                <MessageEdit
+                  color='currentColor'
+                  className='w-3.5 h-3.5 cursor-pointer text-gray-500 hover:text-gray-600'
+                  onClick={() => setEditing(true)}
+                />
+                <Trash
+                  color='currentColor'
+                  className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600'
+                  onClick={() => {
+                    deleteMessageMutation
+                      .mutateAsync({ messageId: message.id })
+                      .then(async ({ success }) => {
+                        if (success) {
+                          return;
+                        }
+                      });
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
           {/* eslint-disable-next-line react/no-children-prop */}
           <div className='text-black dark:text-[#DADADA]'>
-            <Markdown className={MarkdownCSS.markdown} skipHtml remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
-              {message.content}
-            </Markdown>
+            {editing ? (
+              <MessageBox channelName='' connecting={false} onSend={editMsg} editing={{ v: true, setEditing, content: message.content }}></MessageBox>
+            ) : (
+              <Markdown className={MarkdownCSS.markdown} skipHtml remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
+                {message.content}
+              </Markdown>
+            )
+            }
           </div>
           <div className='flex flex-col gap-y-2'>
             {message.embeds ? message.embeds.map(({ title, description, url }, index) => (
