@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import MarkdownCSS from '../styles/markdown.module.css';
 import Link from 'next/link';
@@ -8,13 +8,14 @@ import { MessageType } from '../hooks/useMessages';
 import { MessageEdit, Trash } from 'iconsax-react';
 import { trpc } from '../utils/trpc';
 import { useSession } from 'next-auth/react';
-import { TextChannel } from '@prisma/client';
 import MessageBox from './messageBox';
+import { ContextMenu } from './contextMenu';
+import * as CM from '@radix-ui/react-context-menu';
+import useContextMenu from '../hooks/useContextMenu';
 
 type MessageProps = {
   message: MessageType;
   pending?: boolean;
-  channel?: TextChannel;
 };
 
 const Message: FC<MessageProps> = ({ message, pending = false }) => {
@@ -23,6 +24,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
   const editMessageMutation = trpc.channel.editMessage.useMutation();
   const { data: session } = useSession();
   const [editing, setEditing] = useState(false);
+  const { clicked, setClicked, points, setPoints } = useContextMenu();
 
   function editMsg(msg: string) {
     editMessageMutation.mutate({ messageId: message.id, content: msg })
@@ -38,68 +40,86 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
       onMouseLeave={() => setHovered(false)}
       id={`message_${message.id}`}
     >
-      <div className='flex gap-x-3'>
-        <img
-          className='inline-block h-12 w-12 rounded-full ring-2 ring-white dark:ring-gray-800'
-          src={message.author.image ?? '/placeholder_avatar.svg'}
-          alt={`${message.author.name}'s Avatar`}
-        />
-        <div className='flex flex-col'>
-          <div className='flex justify-start items-center gap-x-2'>
-            <span className='font-bold text-black dark:text-white'>
-              {message.author.name}
-            </span>
-            <span className='text-slate-700 dark:text-slate-400 text-sm'>
-              {new Date(message.createdTimestamp).toLocaleString()} {/*{message.editedTimestamp ? `(Edited) ${new Date(message.createdTimestamp).toLocaleString()}` : ''} */}
-            </span>
-            {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-            {message.author.id === session!.user!.id && !pending ? (
-              <div className={classNames('h-4 bg-gray-300 rounded justify-center items-center flex flex-row gap-x-1', { 'hidden': !hovered })}>
-                <MessageEdit
-                  color='currentColor'
-                  className='w-3.5 h-3.5 cursor-pointer text-gray-500 hover:text-gray-600'
-                  onClick={() => setEditing(true)}
-                />
-                <Trash
-                  color='currentColor'
-                  className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600'
-                  onClick={() => {
-                    deleteMessageMutation
-                      .mutateAsync({ messageId: message.id })
-                      .then(async ({ success }) => {
-                        if (success) {
-                          return;
-                        }
-                      });
-                  }}
-                />
+      <CM.Root>
+        <CM.Trigger>
+          <div className='flex gap-x-3'>
+            <img
+              className='inline-block h-12 w-12 rounded-full ring-2 ring-white dark:ring-gray-800'
+              src={message.author.image ?? '/placeholder_avatar.svg'}
+              alt={`${message.author.name}'s Avatar`}
+            />
+            <div className='flex flex-col'>
+              <div className='flex justify-start items-center gap-x-2'>
+                <span className='font-bold text-black dark:text-white'>
+                  {message.author.name}
+                </span>
+                <span className='text-slate-700 dark:text-slate-400 text-sm'>
+                  {new Date(message.createdTimestamp).toLocaleString()} {/*{message.editedTimestamp ? `(Edited) ${new Date(message.createdTimestamp).toLocaleString()}` : ''} */}
+                </span>
+                {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
+                {message.author.id === session!.user!.id && !pending ? (
+                  <div className={classNames('h-4 bg-gray-300 rounded justify-center items-center flex flex-row gap-x-1', { 'hidden': !hovered })}>
+                    <MessageEdit
+                      color='currentColor'
+                      className='w-3.5 h-3.5 cursor-pointer text-gray-500 hover:text-gray-600'
+                      onClick={() => setEditing(true)}
+                    />
+                    <Trash
+                      color='currentColor'
+                      className='w-3.5 h-3.5 cursor-pointer text-red-500 hover:text-red-600'
+                      onClick={() => {
+                        deleteMessageMutation
+                          .mutateAsync({ messageId: message.id })
+                          .then(async ({ success }) => {
+                            if (success) {
+                              return;
+                            }
+                          });
+                      }}
+                    />
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-          {/* eslint-disable-next-line react/no-children-prop */}
-          <div className='text-black dark:text-[#DADADA]'>
-            {editing ? (
-              <MessageBox channelName='' connecting={false} onSend={editMsg} editing={{ v: true, setEditing, content: message.content }}></MessageBox>
-            ) : (
-              <Markdown className={MarkdownCSS.markdown} skipHtml remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
-                {message.content}
-              </Markdown>
-            )
-            }
-          </div>
-          <div className='flex flex-col gap-y-2'>
-            {message.embeds ? message.embeds.map(({ title, description, url }, index) => (
-              <div className='dark:bg-slate-700 bg-gray-300 rounded-xl dark:text-white w-[500px] py-1' key={index}>
-                <div className='p-4 flex-col flex'>
-                  <p className='text-blue-500 font-bold text-xl hover:underline'><Link href={url}>{title}</Link></p>
-                  <br></br>
-                  <span className='text-sm'>{description}</span>
-                </div>
+              {/* eslint-disable-next-line react/no-children-prop */}
+              <div className='text-black dark:text-[#DADADA]'>
+                {editing ? (
+                  <MessageBox channelName='' connecting={false} onSend={editMsg} editing={{ v: true, setEditing, content: message.content }}></MessageBox>
+                ) : (
+                  <Markdown className={MarkdownCSS.markdown} skipHtml remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
+                    {message.content}
+                  </Markdown>
+                )
+                }
               </div>
-            )) : null}
-          </div>
-        </div>
-      </div >
+              <div className='flex flex-col gap-y-2'>
+                {message.embeds ? message.embeds.map(({ title, description, url }, index) => (
+                  <div className='dark:bg-slate-700 bg-gray-300 rounded-xl dark:text-white w-[500px] py-1' key={index}>
+                    <div className='p-4 flex-col flex'>
+                      <p className='text-blue-500 font-bold text-xl hover:underline'><Link href={url}>{title}</Link></p>
+                      <br></br>
+                      <span className='text-sm'>{description}</span>
+                    </div>
+                  </div>
+                )) : null}
+              </div>
+            </div>
+          </div >
+        </CM.Trigger>
+        <ContextMenu type='message' onClick={(_, type) => {
+          if (type === 'edit') {
+            setEditing(true);
+          }
+          if (type === 'delete') {
+            deleteMessageMutation
+              .mutateAsync({ messageId: message.id })
+              .then(async ({ success }) => {
+                if (success) {
+                  return;
+                }
+              });
+          }
+        }} />
+      </CM.Root>
     </div >
   );
 };

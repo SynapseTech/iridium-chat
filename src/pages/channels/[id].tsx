@@ -93,7 +93,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
         <title>Iridium Chat</title>
       </Head>
 
-      <main className='h-screen w-screen bg-white dark:bg-slate-900 flex'>
+      <main className='h-screen w-screen bg-white dark:bg-slate-900 flex' onContextMenu={(e) => { e.preventDefault() }}>
         <ApplicationSidebar currentChannelId={channel.id} />
         <div className='flex-grow flex flex-col'>
           <div className='px-6 py-4 border-b border-gray-200 flex gap-x-4 content-center'>
@@ -111,7 +111,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
               <div className='grid grid-cols-1 gap-3 justify-end items-stretch'>
                 {loading ? <LoadingMessage /> : ''}
                 {messages.map((message, idx) => (
-                  <Message key={idx} message={message} channel={channel} />
+                  <Message key={idx} message={message} />
                 ))}
                 {pendingMessage.current && (
                   <Message pending message={pendingMessage.current} />

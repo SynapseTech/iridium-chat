@@ -42,18 +42,18 @@ Prism.languages.insertBefore('markdown', 'prolog', {
   //   pattern: /(^\s*)(?:[*+-]|\d+\.)(?=[\t ].)/m,
   //   lookbehind: !0, alias: "punctuation"
   // },
-  // "url-reference": {
-  //   pattern: /!?\[[^\]]+\]:[\t ]+(?:\S+|<(?:\\.|[^>\\])+>)(?:[\t ]+(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\)))?/,
-  //   inside: {
-  //     variable: {
-  //       pattern: /^(!?\[)[^\]]+/,
-  //       lookbehind: !0
-  //     },
-  //     string: /(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))$/,
-  //     punctuation: /^[\[\]!:]|[<>]/
-  //   },
-  //   alias: "url"
-  // },
+  "url-reference": {
+    pattern: /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/,
+    inside: {
+      variable: {
+        pattern: /^(!?\[)[^\]]+/,
+        lookbehind: !0
+      },
+      string: /(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))$/,
+      punctuation: /^[\[\]!:]|[<>]/
+    },
+    alias: "url"
+  },
   bold: {
     pattern: /(^|[^\\])(\*\*|__)(?:(?:\r?\n|\r)(?!\r?\n|\r)|.)+?\2/,
     lookbehind: !0,
@@ -65,13 +65,13 @@ Prism.languages.insertBefore('markdown', 'prolog', {
     inside: { punctuation: /^[*_]|[*_]$/ },
   },
   url: {
-    pattern: /!?\[[^\]]+\](?:\([^\s)]+(?:[\t ]+"(?:\\.|[^"\\])*")?\)| ?\[[^\]\n]*\])/,
+    pattern: /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/,
     inside: {
       variable: {
         pattern: /(!?\[)[^\]]+(?=\]$)/,
         lookbehind: !0
       },
-      string: { pattern: /"(?:\\.|[^"\\])*"(?=\)$)/ }
+      string: { pattern: /"((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?"(?=\)$)/ }
     }
   }
 });
@@ -107,7 +107,7 @@ const Leaf = ({ attributes, children, leaf }: any) => {
       className={`${leaf.bold && 'font-bold'} ${leaf.italic && 'italic'} ${leaf.underlined && 'underline'
         } ${leaf.title && 'text-2xl font-bold my-4'} ${leaf.list && 'pl-4 text-xl'
         } ${leaf.hr && 'block text-center border-b-2 border-gray-300'} ${leaf.blockquote && 'pl-4 text-gray-400 italic'
-        } ${leaf.code && 'font-mono bg-gray-100 p-1'}`}
+        } ${leaf.code && 'font-mono bg-gray-100 p-1'} ${leaf.link && 'text-blue-500'}`}
     >
       {children}
     </span>
