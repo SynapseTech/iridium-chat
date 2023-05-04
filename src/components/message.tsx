@@ -92,15 +92,22 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                 }
               </div>
               <div className='flex flex-col gap-y-2'>
-                {message.embeds ? message.embeds.map(({ title, description, url }, index) => (
-                  <div className='dark:bg-slate-700 bg-gray-300 rounded-xl dark:text-white w-[500px] py-1' key={index}>
-                    <div className='p-4 flex-col flex'>
-                      <p className='text-blue-500 font-bold text-xl hover:underline'><Link href={url}>{title}</Link></p>
-                      <br></br>
-                      <span className='text-sm'>{description}</span>
+                {message.embeds ? message.embeds.map(({ title, description, url, image }, index) => {
+                  if (/(http)?s?:?(\/\/[^"']*\.(?:png|jpg|jpeg|gif|png|svg))/i.test(url))
+                    return (
+                      <img className='w-[500px] rounded-xl' src={url} alt='Linked image' />
+                    );
+
+                  return (
+                    <div className='dark:bg-slate-700 bg-gray-300 rounded-xl dark:text-white w-[500px] py-1' key={index}>
+                      <div className='p-4 flex-col flex'>
+                        <p className='text-blue-500 font-bold text-xl hover:underline'><a href={url}>{title}</a></p>
+                        <br></br>
+                        <span className='text-sm'>{description}</span>
+                      </div>
                     </div>
-                  </div>
-                )) : null}
+                  )
+                }) : null}
               </div>
             </div>
           </div >
