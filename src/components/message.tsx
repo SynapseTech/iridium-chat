@@ -82,7 +82,14 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                 {editing ? (
                   <MessageBox channelName='' connecting={false} onSend={editMsg} editing={{ v: true, setEditing, content: message.content }}></MessageBox>
                 ) : (
-                  <Markdown className={MarkdownCSS.markdown} skipHtml remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
+                  <Markdown className={MarkdownCSS.markdown} skipHtml remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
+                    components={{
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      a: ({ node, ...props }) => {
+                        return <a {...props} target="_blank" rel="noreferrer" />
+                      }
+                    }}
+                  >
                     {message.content}
                   </Markdown>
                 )
@@ -98,7 +105,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                   return (
                     <div className='dark:bg-slate-700 bg-gray-300 rounded-xl dark:text-white w-[500px] py-1' key={index}>
                       <div className='p-4 flex-col flex'>
-                        <p className='text-blue-500 font-bold text-xl hover:underline'><a href={url}>{title}</a></p>
+                        <p className='text-blue-500 font-bold text-xl hover:underline'><a href={url} target="_blank" rel="noreferrer">{title}</a></p>
                         <br></br>
                         <span className='text-sm'>{description}</span>
                       </div>
