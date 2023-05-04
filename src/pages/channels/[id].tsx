@@ -23,6 +23,7 @@ import useMessages, { MessageType } from '../../hooks/useMessages';
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
+  messageLink: string | null;
 };
 
 type ChatPageProps = ChatPageServerSideProps;
@@ -162,9 +163,12 @@ export const getServerSideProps: GetServerSideProps = async ({
       notFound: true,
     };
 
+  console.log(params);
+
   return {
     props: {
       channel: JSON.parse(JSON.stringify(channel)), // dumbshit
+      messageLink: null,
     },
   };
 };

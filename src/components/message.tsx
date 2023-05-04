@@ -1,8 +1,7 @@
 import classNames from 'classnames';
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import Markdown from 'react-markdown';
 import MarkdownCSS from '../styles/markdown.module.css';
-import Link from 'next/link';
 import remarkGfm from 'remark-gfm';
 import { MessageType } from '../hooks/useMessages';
 import { MessageEdit, Trash } from 'iconsax-react';
@@ -11,7 +10,6 @@ import { useSession } from 'next-auth/react';
 import MessageBox from './messageBox';
 import { ContextMenu } from './contextMenu';
 import * as CM from '@radix-ui/react-context-menu';
-import useContextMenu from '../hooks/useContextMenu';
 
 type MessageProps = {
   message: MessageType;
@@ -24,7 +22,6 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
   const editMessageMutation = trpc.channel.editMessage.useMutation();
   const { data: session } = useSession();
   const [editing, setEditing] = useState(false);
-  const { clicked, setClicked, points, setPoints } = useContextMenu();
 
   function editMsg(msg: string) {
     editMessageMutation.mutate({ messageId: message.id, content: msg })
@@ -92,7 +89,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                 }
               </div>
               <div className='flex flex-col gap-y-2'>
-                {message.embeds ? message.embeds.map(({ title, description, url, image }, index) => {
+                {message.embeds ? message.embeds.map(({ title, description, url }, index) => {
                   if (/(http)?s?:?(\/\/[^"']*\.(?:png|jpg|jpeg|gif|png|svg))/i.test(url))
                     return (
                       <img className='w-[500px] rounded-xl' src={url} alt='Linked image' />
@@ -112,7 +109,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
             </div>
           </div >
         </CM.Trigger>
-        <ContextMenu type='message' onClick={(_, type) => {
+        <ContextMenu type='message' author={message.author} onClick={(_, type) => {
           if (type === 'edit') {
             setEditing(true);
           }
@@ -124,6 +121,9 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                   return;
                 }
               });
+          }
+          if (type === 'copy') {
+            navigator.clipboard.writeText(`${document.location.origin}/channels/${message.channelId}/${message.id}`);
           }
         }} />
       </CM.Root>
