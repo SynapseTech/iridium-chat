@@ -1,8 +1,5 @@
 import classNames from 'classnames';
 import { FC, useState } from 'react';
-import Markdown from 'react-markdown';
-import MarkdownCSS from '../styles/markdown.module.css';
-import remarkGfm from 'remark-gfm';
 import { MessageType } from '../hooks/useMessages';
 import { MessageEdit, Trash } from 'iconsax-react';
 import { trpc } from '../utils/trpc';
@@ -10,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import MessageBox from './messageBox';
 import { ContextMenu } from './contextMenu';
 import * as CM from '@radix-ui/react-context-menu';
+import { Markdown } from './markdown';
 
 type MessageProps = {
   message: MessageType;
@@ -82,14 +80,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                 {editing ? (
                   <MessageBox channelName='' connecting={false} onSend={editMsg} editing={{ v: true, setEditing, content: message.content }}></MessageBox>
                 ) : (
-                  <Markdown className={MarkdownCSS.markdown} skipHtml remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
-                    components={{
-                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      a: ({ node, ...props }) => {
-                        return <a {...props} target="_blank" rel="noreferrer" />
-                      }
-                    }}
-                  >
+                  <Markdown>
                     {message.content}
                   </Markdown>
                 )

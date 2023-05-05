@@ -6,8 +6,11 @@ import type { AppType } from 'next/dist/shared/lib/utils';
 import { trpc } from '../utils/trpc';
 import { useEffect, useRef, useState } from 'react';
 import { WSProvider } from '../contexts/WSProvider';
+import { Modal } from '../components/modal';
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+  const [isOpen, setOpen] = useState(true);
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -107,11 +110,19 @@ Iridium Chat: A Synapse Technologies Product. Check out the code at https://gith
   }, []);
 
   return (
-    <SessionProvider session={pageProps.session}>
+    <SessionProvider session={(pageProps as any).session}>
       <WSProvider ws={wsClient} connecting={waitingToReconnect}>
         <Component {...pageProps} />
+        <div className='absolute top-0 left-0 right-0 bottom-0 !bg-none pointer-events-none z-[1002]'>
+          {isOpen && (pageProps as any).mData !== undefined ? (
+            <div className='flex justify-center items-center' style={{ margin: '0 auto' }}>
+              <div className='fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-[0.85] flex items-center justify-center' style={{ pointerEvents: 'all', transform: 'translateZ(0)' }} />
+              <Modal onClose={() => setOpen(false)} data={(pageProps as any).mData} />
+            </div>
+          ) : null}
+        </div>
       </WSProvider>
-    </SessionProvider>
+    </SessionProvider >
   );
 };
 
