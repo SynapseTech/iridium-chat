@@ -8,6 +8,7 @@ import MessageBox from './messageBox';
 import { ContextMenu } from './contextMenu';
 import * as CM from '@radix-ui/react-context-menu';
 import { Markdown } from './markdown';
+import { isSameDay, format, subDays } from 'date-fns';
 
 type MessageProps = {
   message: MessageType;
@@ -49,7 +50,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
                   {message.author.name}
                 </span>
                 <span className='text-slate-700 dark:text-slate-400 text-sm'>
-                  {new Date(message.createdTimestamp).toLocaleString()} {/*{message.editedTimestamp ? `(Edited) ${new Date(message.createdTimestamp).toLocaleString()}` : ''} */}
+                  {timestampGenerator(new Date(message.createdTimestamp))} {/*{message.editedTimestamp ? `(Edited) ${new Date(message.createdTimestamp).toLocaleString()}` : ''} */}
                 </span>
                 {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
                 {message.author.id === session!.user!.id && !pending ? (
@@ -130,3 +131,19 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
 };
 
 export default Message;
+
+function timestampGenerator(compare: Date) {
+  const today = new Date();
+  const yesterday = subDays(today, 1);
+
+  let result = '';
+  if (isSameDay(compare, today)) {
+    result = `Today at ${format(compare, 'h:mm a')}`;
+  } else if (isSameDay(compare, yesterday)) {
+    result = `Yesterday at ${format(compare, 'h:mm a')}`;
+  } else {
+    result = `${compare.toLocaleDateString()} ${compare.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  }
+
+  return result;
+}
