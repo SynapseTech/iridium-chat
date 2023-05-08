@@ -11,8 +11,7 @@ export const getServerSideProps = ({ req }: { req: NextRequest }) => {
         mData: {
           title: 'Notice',
           type: 'terms',
-          content: `Iridium Chat is still in development.\n\nThis is not a finished product.\n\nDesigns and flows are still subject to change.\n\n**Thank you for using Iridium Chat!**\n\n*- The Iridium Chat Team*`,
-          state: true,
+          content: `Iridium Chat is still in development.\n\nThis is not a finished product.\n\nDesigns and flows are still subject to change.\n\n**Thank you for using Iridium Chat!**\n\n*- The Iridium Chat Team*`
         } as ModalData
       }
     }
