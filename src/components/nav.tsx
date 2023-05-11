@@ -10,18 +10,16 @@ const Nav: FC = () => {
         aria-label='Global'
       >
         <div className='flex items-center justify-between'>
-          <Link href='/'>
-            <a
-              className='flex flex-none w-auto content-center text-xl font-semibold text-white'
-              aria-label='Iridium'
-            >
-              <img
-                className='h-8 w-8 inline'
-                alt='iridium logo'
-                src='/iridium_logo.svg'
-              />
-              Iridium
-            </a>
+          <Link
+            href='/'
+            className='flex flex-none w-auto content-center text-xl font-semibold text-white'
+            aria-label='Iridium'>
+
+            <img
+              className='h-8 w-8 inline'
+              alt='iridium logo'
+              src='/iridium_logo.svg'
+            />Iridium
           </Link>
           <div className='sm:hidden'>
             <button

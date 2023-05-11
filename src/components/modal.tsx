@@ -2,7 +2,7 @@ import { Markdown } from "./markdown";
 
 export type ModalData = {
   title: string;
-  type: 'update' | 'warning' | 'notice' | 'terms' | 'default';
+  type: 'update' | 'warning' | 'notice' | 'terms';
   content: string;
   state: boolean;
 }

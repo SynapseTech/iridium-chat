@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 import { createModal, useGlobalModal } from '../../contexts/ModalProvider';
 
 export const getServerSideProps = ({ req }: { req: NextRequest }) => {
-  if (req.cookies['terms' as keyof typeof req.cookies] !== '1') {
+  if (req.cookies['terms' as keyof unknown] !== '1') {
     return {
       props: {
         mData: {
