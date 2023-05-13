@@ -11,11 +11,12 @@ import { Markdown } from './markdown';
 import { isSameDay, format, subDays } from 'date-fns';
 
 type MessageProps = {
+  key: React.Key;
   message: MessageType;
   pending?: boolean;
 };
 
-const Message: FC<MessageProps> = ({ message, pending = false }) => {
+const Message: FC<MessageProps> = ({ message, pending = false, key }) => {
   const [hovered, setHovered] = useState(false);
   const deleteMessageMutation = trpc.channel.deleteMessage.useMutation();
   const editMessageMutation = trpc.channel.editMessage.useMutation();
@@ -35,6 +36,7 @@ const Message: FC<MessageProps> = ({ message, pending = false }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       id={`message_${message.id}`}
+      key={key}
     >
       <CM.Root>
         <CM.Trigger>

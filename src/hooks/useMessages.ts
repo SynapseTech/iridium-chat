@@ -31,9 +31,9 @@ const useMessages = (
     start: messages.length,
   });
 
-  const wsContext = useWS();
-  if (!wsContext) throw new Error('WSContext not found');
-  const wsClient = wsContext?.ws;
+  const wsInstance = useWS();
+  if (!wsInstance) throw new Error('wsInstance not found');
+  const wsClient = wsInstance?.ws;
 
   /**
    * Reset messages and set loading to true when channel route changes
@@ -66,6 +66,8 @@ const useMessages = (
     const data: { type: string; data: MessageType; nonce: string } = JSON.parse(
       event.data,
     );
+
+    console.log('[WebSocket Pareser]', 'Recieved event', data.type)
 
     if (data.type === 'createMessage') {
       if (

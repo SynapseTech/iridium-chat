@@ -37,7 +37,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
       onClose={async (id?: string) => {
         setCreateChannelModalOpen(false);
         await loadChannelsQuery.refetch();
-        if (id) await router.push(`/channels/${id}`);
+        if (id) await router.replace(`/channels/${id}`);
       }}
     />
     <aside className='hs-sidebar w-64 bg-white dark:bg-slate-800 border-r border-gray-200 pt-8 pb-10 overflow-y-auto scrollbar-y flex-col'>
@@ -68,7 +68,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
                   router.prefetch(`/channels/${id}`);
                 }}
                 onClick={() => {
-                  router.push(`/channels/${id}`);
+                  router.replace(`/channels/${id}`);
                 }}
               >
                 <Hashtag color='currentColor' className='w-3.5 h-3.5' />
@@ -83,7 +83,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
                         .then(async ({ success }) => {
                           if (success) {
                             await loadChannelsQuery.refetch();
-                            await router.push('/channels');
+                            await router.replace('/channels');
                           }
                         });
                     }}

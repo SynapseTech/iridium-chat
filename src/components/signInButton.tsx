@@ -18,9 +18,10 @@ const SignInButton: FC<SignInButtonProps> = ({ inNavbar = false, icon }) => {
 
   return (
     <button
-      onClick={async () => {
+      onClick={async (e) => {
+        e.preventDefault();
         if (!isLoggedIn) signIn();
-        else await router.push('/channels');
+        else await router.replace('/channels');
       }}
       type='button'
       className={classes}

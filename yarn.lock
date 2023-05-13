@@ -1454,6 +1454,11 @@
   dependencies:
     "webidl-conversions" "^7.0.0"
 
+"dotenv@^16.0.3":
+  "integrity" "sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ=="
+  "resolved" "https://registry.npmjs.org/dotenv/-/dotenv-16.0.3.tgz"
+  "version" "16.0.3"
+
 "eastasianwidth@^0.2.0":
   "integrity" "sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA=="
   "resolved" "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz"

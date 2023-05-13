@@ -12,6 +12,7 @@ export const serverSchema = z.object({
   NEXTAUTH_URL: z.string().url(),
   GITHUB_ID: z.string(),
   GITHUB_SECRET: z.string(),
+  WS_AUTH_TOKEN: z.string().length(44),
 });
 
 /**
