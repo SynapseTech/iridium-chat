@@ -6,9 +6,9 @@ const socketHandler = (wss) => {
   wss.on('connection', (ws) => {
     ws.on('error', console.error);
     clients.add(ws);
-    console.log('ws++');
+    console.log('[Websocket Events]', 'New client connected');
     ws.on('close', () => {
-      console.log('ws--');
+      console.log('[Websocket Events]', 'Client Disconnected');
       clients.delete(ws);
     });
   });

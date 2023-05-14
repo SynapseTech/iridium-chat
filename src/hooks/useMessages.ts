@@ -67,8 +67,6 @@ const useMessages = (
       event.data,
     );
 
-    console.log('[WebSocket Pareser]', 'Recieved event', data.type)
-
     if (data.type === 'createMessage') {
       if (
         data.data.channelId === channelId &&

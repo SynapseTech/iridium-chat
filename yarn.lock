@@ -175,10 +175,10 @@
   "resolved" "https://registry.npmjs.org/@next-auth/prisma-adapter/-/prisma-adapter-1.0.6.tgz"
   "version" "1.0.6"
 
-"@next/env@13.4.1":
-  "integrity" "sha512-eD6WCBMFjLFooLM19SIhSkWBHtaFrZFfg2Cxnyl3vS3DAdFRfnx5TY2RxlkuKXdIRCC0ySbtK9JXXt8qLCqzZg=="
-  "resolved" "https://registry.npmjs.org/@next/env/-/env-13.4.1.tgz"
-  "version" "13.4.1"
+"@next/env@13.4.2":
+  "integrity" "sha512-Wqvo7lDeS0KGwtwg9TT9wKQ8raelmUxt+TQKWvG/xKfcmDXNOtCuaszcfCF8JzlBG1q0VhpI6CKaRMbVPMDWgw=="
+  "resolved" "https://registry.npmjs.org/@next/env/-/env-13.4.2.tgz"
+  "version" "13.4.2"
 
 "@next/eslint-plugin-next@13.4.1":
   "integrity" "sha512-tVPS/2FKlA3ANCRCYZVT5jdbUKasBU8LG6bYqcNhyORDFTlDYa4cAWQJjZ7msIgLwMQIbL8CAsxrOL8maa/4Lg=="
@@ -187,10 +187,10 @@
   dependencies:
     "glob" "7.1.7"
 
-"@next/swc-darwin-x64@13.4.1":
-  "integrity" "sha512-7cmDgF9tGWTgn5Gw+vP17miJbH4wcraMHDCOHTYWkO/VeKT73dUWG23TNRLfgtCNSPgH4V5B4uLHoZTanx9bAw=="
-  "resolved" "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-13.4.1.tgz"
-  "version" "13.4.1"
+"@next/swc-darwin-x64@13.4.2":
+  "integrity" "sha512-iZuYr7ZvGLPjPmfhhMl0ISm+z8EiyLBC1bLyFwGBxkWmPXqdJ60mzuTaDSr5WezDwv0fz32HB7JHmRC6JVHSZg=="
+  "resolved" "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-13.4.2.tgz"
+  "version" "13.4.2"
 
 "@nodelib/fs.scandir@2.1.5":
   "integrity" "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="
@@ -3254,12 +3254,12 @@
     "preact-render-to-string" "^5.1.19"
     "uuid" "^8.3.2"
 
-"next@*", "next@^12.2.5 || ^13", "next@^13.4.1":
-  "integrity" "sha512-JBw2kAIyhKDpjhEWvNVoFeIzNp9xNxg8wrthDOtMctfn3EpqGCmW0FSviNyGgOSOSn6zDaX48pmvbdf6X2W9xA=="
-  "resolved" "https://registry.npmjs.org/next/-/next-13.4.1.tgz"
-  "version" "13.4.1"
+"next@*", "next@^12.2.5 || ^13", "next@^13.4.2":
+  "integrity" "sha512-aNFqLs3a3nTGvLWlO9SUhCuMUHVPSFQC0+tDNGAsDXqx+WJDFSbvc233gOJ5H19SBc7nw36A9LwQepOJ2u/8Kg=="
+  "resolved" "https://registry.npmjs.org/next/-/next-13.4.2.tgz"
+  "version" "13.4.2"
   dependencies:
-    "@next/env" "13.4.1"
+    "@next/env" "13.4.2"
     "@swc/helpers" "0.5.1"
     "busboy" "1.6.0"
     "caniuse-lite" "^1.0.30001406"
@@ -3267,15 +3267,15 @@
     "styled-jsx" "5.1.1"
     "zod" "3.21.4"
   optionalDependencies:
-    "@next/swc-darwin-arm64" "13.4.1"
-    "@next/swc-darwin-x64" "13.4.1"
-    "@next/swc-linux-arm64-gnu" "13.4.1"
-    "@next/swc-linux-arm64-musl" "13.4.1"
-    "@next/swc-linux-x64-gnu" "13.4.1"
-    "@next/swc-linux-x64-musl" "13.4.1"
-    "@next/swc-win32-arm64-msvc" "13.4.1"
-    "@next/swc-win32-ia32-msvc" "13.4.1"
-    "@next/swc-win32-x64-msvc" "13.4.1"
+    "@next/swc-darwin-arm64" "13.4.2"
+    "@next/swc-darwin-x64" "13.4.2"
+    "@next/swc-linux-arm64-gnu" "13.4.2"
+    "@next/swc-linux-arm64-musl" "13.4.2"
+    "@next/swc-linux-x64-gnu" "13.4.2"
+    "@next/swc-linux-x64-musl" "13.4.2"
+    "@next/swc-win32-arm64-msvc" "13.4.2"
+    "@next/swc-win32-ia32-msvc" "13.4.2"
+    "@next/swc-win32-x64-msvc" "13.4.2"
 
 "node-releases@^2.0.8":
   "integrity" "sha512-5GFldHPXVG/YZmFzJvKK2zDSzPKhEp0+ZR5SVaoSag9fsL5YgHbUHDfnG5494ISANDcK4KwPXAx2xqVEydmd7w=="

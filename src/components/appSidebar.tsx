@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Add, Hashtag, Trash } from 'iconsax-react';
+import { Add, Hashtag, Moon, Sun1, Trash } from 'iconsax-react';
 import { TextChannel } from '@prisma/client';
 import { trpc } from '../utils/trpc';
 import CreateChannelModal from './createChannelModal';
@@ -18,12 +18,16 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
 }) => {
   const { data: session } = useSession();
   const [channels, setChannels] = useState<TextChannel[]>([]);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
   const [createChannelModalOpen, setCreateChannelModalOpen] =
     useState<boolean>(false);
   const deleteChannelMutation = trpc.channel.delete.useMutation();
   const router = useRouter();
 
+  useEffect(() => {
+    setTheme(localStorage.getItem('theme') as 'light' | 'dark' || 'light')
+  }, [])
   /**
    * Load accessible channels using tRPC on page load.
    */
@@ -99,6 +103,21 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
             >
               <Add color='currentColor' className='w-3.5 h-3.5' />
               Create Channel
+            </button>
+          </li>
+          <li>
+            <button className='rounded-xl bg-gray-300 bottom-0 p-3' onClick={() => {
+              if (localStorage.getItem('theme') === 'dark') {
+                localStorage.setItem('theme', 'light');
+                setTheme('light');
+                document.body.classList.remove('dark');
+              } else {
+                localStorage.setItem('theme', 'dark');
+                setTheme('dark');
+                document.body.classList.add('dark');
+              }
+            }}>
+              {theme === 'dark' ? <Sun1 /> : <Moon />}
             </button>
           </li>
         </ul>

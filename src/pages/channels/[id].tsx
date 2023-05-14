@@ -91,7 +91,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   return (
     <>
       <Head>
-        <title>Iridium Chat</title>
+        <title>Iridium Chat | #{channel.name}</title>
       </Head>
 
       <main className='h-screen w-screen bg-white dark:bg-slate-900 flex' onContextMenu={(e) => { e.preventDefault() }}>

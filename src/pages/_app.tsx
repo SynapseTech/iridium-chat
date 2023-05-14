@@ -18,9 +18,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
 
   useEffect(() => {
-    // if (document) {
-    //   document.body.classList.add('dark');
-    // }
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem('theme') === 'dark') {
+        window.document.body.classList.add('dark');
+      } else {
+        window.document.body.classList.remove('dark');
+      }
+    }
     if (window.console) {
       console.log(`
   .  . .  .  . .  .  . .  .  . .  .  .  
