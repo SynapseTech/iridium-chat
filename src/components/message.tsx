@@ -32,7 +32,7 @@ const Message: FC<MessageProps> = ({ message, pending = false, key }) => {
 
   return (
     <div
-      className={classNames('py-2 px-6 hover:bg-gray-100', { 'opacity-50': pending })}
+      className={classNames('py-2 px-6 hover:bg-gray-100 dark:hover:bg-slate-800', { 'opacity-50': pending })}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       id={`message_${message.id}`}

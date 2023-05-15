@@ -7,6 +7,16 @@ export type RawEmbed = { title: string; description: string; image: string; url:
 
 const URLRegex = /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/gm;
 
+function exclude<User, Key extends keyof User>(
+  user: User,
+  keys: Key[]
+): Omit<User, Key> {
+  for (let key of keys) {
+    delete user[key]
+  }
+  return user
+}
+
 export const channelRouter = t.router({
   fetchMessages: authedProcedure
     .input(
@@ -68,6 +78,7 @@ export const channelRouter = t.router({
 
         return {
           ...message,
+          author: exclude(message.author, ['email', 'emailVerified']),
           embeds,
         }
       }));
@@ -185,7 +196,10 @@ export const channelRouter = t.router({
           nonce: input.nonce,
         }),
       });
-      return message;
+      return {
+        ...message,
+        author: exclude(message.author, ['email', 'emailVerified']),
+      };
     }),
   deleteMessage: authedProcedure
     .input(

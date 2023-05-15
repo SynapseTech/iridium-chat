@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { trpc } from '../utils/trpc';
 import { RawEmbed } from '../server/trpc/router/channel';
 
-export type MessageType = TextMessage & { author: User, embeds: RawEmbed[] };
+export type MessageType = TextMessage & { author: Omit<User, "email" | "emailVerified">, embeds: RawEmbed[] };
 
 /**
  * Custom hook to handle loading of messages.
