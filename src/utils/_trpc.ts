@@ -3,7 +3,7 @@ import { createTRPCReact } from "@trpc/react-query";
 import type { AppRouter } from '../server/trpc/router';
 
 export const trpc = createTRPCReact<AppRouter>({
-  unstable_overrides: {
+  overrides: {
     useMutation: {
       async onSuccess(opts) {
         await opts.originalFn();
@@ -11,7 +11,7 @@ export const trpc = createTRPCReact<AppRouter>({
       },
     },
   },
-});
+},);
 
 
 export const getBaseUrl = () => {

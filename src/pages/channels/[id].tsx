@@ -60,8 +60,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       author: {
         id: session!.user!.id,
         name: session!.user!.name!,
-        email: '',
-        emailVerified: new Date(),
         image: session!.user!.image!,
       },
       embeds: [],
