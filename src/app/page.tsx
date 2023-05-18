@@ -1,24 +1,19 @@
-import type { NextPage } from 'next';
-import Head from 'next/head';
+import type { NextPage, Metadata } from 'next';
 import { faRocket } from '@fortawesome/free-solid-svg-icons';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import SignInButton from '../components/signInButton';
-import Nav from '../components/nav';
+import SignInButton from '../@app/components/signInButton';
+import Nav from '../@app/components/nav';
 import SyntechLogo from '../components/syntechLogo';
+
+export const metadata: Metadata = {
+  title: 'Iridium Chat',
+  description: 'A privacy-centric alternative to Discord for professional communications',
+}
 
 const Home: NextPage = () => {
   return (
     <div className='bg-slate-900 flex h-screen'>
-      <Head>
-        <title>Iridium Chat</title>
-        <meta
-          name='description'
-          content='A privacy-centric alternative to Discord for professional communications'
-        />
-        <link rel='icon' href='/favicon.ico' />
-      </Head>
-
       <div className='max-w-[50rem] flex flex-col mx-auto w-full h-full'>
         <Nav />
 

@@ -60,8 +60,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
       author: {
         id: session!.user!.id,
         name: session!.user!.name!,
-        email: '',
-        emailVerified: new Date(),
         image: session!.user!.image!,
       },
       embeds: [],
@@ -91,7 +89,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
   return (
     <>
       <Head>
-        <title>Iridium Chat</title>
+        <title>Iridium Chat | #{channel.name}</title>
       </Head>
 
       <main className='h-screen w-screen bg-white dark:bg-slate-900 flex' onContextMenu={(e) => { e.preventDefault() }}>
@@ -111,11 +109,11 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel }) => {
             >
               <div className='grid grid-cols-1 gap-3 justify-end items-stretch'>
                 {loading ? <LoadingMessage /> : ''}
-                {messages.map((message, idx) => (
-                  <Message key={idx} message={message} />
+                {messages.map((message) => (
+                  <Message key={message.id} message={message} />
                 ))}
                 {pendingMessage.current && (
-                  <Message pending message={pendingMessage.current} />
+                  <Message key={0} pending message={pendingMessage.current} />
                 )}
               </div>
               <div ref={messagesEndRef} />

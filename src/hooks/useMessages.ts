@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { trpc } from '../utils/trpc';
 import { RawEmbed } from '../server/trpc/router/channel';
 
-export type MessageType = TextMessage & { author: User, embeds: RawEmbed[] };
+export type MessageType = TextMessage & { author: Omit<User, "email" | "emailVerified">, embeds: RawEmbed[] };
 
 /**
  * Custom hook to handle loading of messages.
@@ -31,9 +31,9 @@ const useMessages = (
     start: messages.length,
   });
 
-  const wsContext = useWS();
-  if (!wsContext) throw new Error('WSContext not found');
-  const wsClient = wsContext?.ws;
+  const wsInstance = useWS();
+  if (!wsInstance) throw new Error('wsInstance not found');
+  const wsClient = wsInstance?.ws;
 
   /**
    * Reset messages and set loading to true when channel route changes

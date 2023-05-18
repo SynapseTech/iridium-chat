@@ -1,10 +1,11 @@
+'use client';
 import { FC, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Add, Hashtag, Moon, Sun1, Trash } from 'iconsax-react';
 import { TextChannel } from '@prisma/client';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../../utils/_trpc';
 import CreateChannelModal from './createChannelModal';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
 type ApplicationSidebarProps = {

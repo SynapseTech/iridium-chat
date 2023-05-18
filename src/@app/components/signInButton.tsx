@@ -1,6 +1,7 @@
+'use client';
 import { FC, ReactNode } from 'react';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 type SignInButtonProps = {
   inNavbar?: boolean;

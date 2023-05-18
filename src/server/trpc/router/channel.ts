@@ -1,12 +1,21 @@
 import { authedProcedure, t } from '../trpc';
 import { z } from 'zod';
-import { broadcastEvent, broadcastMessage } from '../../socket';
 import { JSDOM } from 'jsdom';
 
 
 export type RawEmbed = { title: string; description: string; image: string; url: string; };
 
 const URLRegex = /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/gm;
+
+function exclude<User, Key extends keyof User>(
+  user: User,
+  keys: Key[]
+): Omit<User, Key> {
+  for (let key of keys) {
+    delete user[key]
+  }
+  return user
+}
 
 export const channelRouter = t.router({
   fetchMessages: authedProcedure
@@ -69,6 +78,7 @@ export const channelRouter = t.router({
 
         return {
           ...message,
+          author: exclude(message.author, ['email', 'emailVerified']),
           embeds,
         }
       }));
@@ -174,8 +184,22 @@ export const channelRouter = t.router({
 
       const finalMsg = { ...message, embeds: embeds };
 
-      broadcastMessage(finalMsg, input.nonce);
-      return message;
+      await fetch(`http://localhost:8080/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': process.env.WS_AUTH_TOKEN!,
+        },
+        body: JSON.stringify({
+          type: 'createMessage',
+          data: finalMsg,
+          nonce: input.nonce,
+        }),
+      });
+      return {
+        ...message,
+        author: exclude(message.author, ['email', 'emailVerified']),
+      };
     }),
   deleteMessage: authedProcedure
     .input(
@@ -199,7 +223,17 @@ export const channelRouter = t.router({
           },
         });
 
-        broadcastEvent('deleteMessage', { id: message.id });
+        await fetch(`http://localhost:8080/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'authorization': process.env.WS_AUTH_TOKEN!,
+          },
+          body: JSON.stringify({
+            type: 'deleteMessage',
+            data: { id: message.id },
+          }),
+        });
         return { success: true }
       } else return { success: false };
     }),
@@ -234,7 +268,17 @@ export const channelRouter = t.router({
           },
         });
 
-        broadcastEvent('editMessage', message);
+        await fetch(`http://localhost:8080/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'authorization': process.env.WS_AUTH_TOKEN!,
+          },
+          body: JSON.stringify({
+            type: 'editMessage',
+            data: message,
+          }),
+        });
         return { success: true }
       } else return { success: false };
     }),
