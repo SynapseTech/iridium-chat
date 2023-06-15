@@ -1,8 +1,16 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 export type WSContext = { ws: WebSocket | undefined; connecting: boolean };
 
-const ws = new WebSocket('ws://localhost:8080');
+const ws = new WebSocket(
+  'wss://rocky43007-reimagined-engine-jjj5gvj577j2qv7j-8080.preview.app.github.dev/',
+);
 console.log('[WS]', 'Connected');
 
 const wsContext = createContext<WSContext>({ ws, connecting: false });
@@ -16,7 +24,11 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       console.log('[WS]', 'Connection Closed');
       setConnecting(true);
       setTimeout(() => {
-        setWs(new WebSocket('ws://localhost:8080'));
+        setWs(
+          new WebSocket(
+            'wss://rocky43007-reimagined-engine-jjj5gvj577j2qv7j-8080.preview.app.github.dev/',
+          ),
+        );
         console.log('[WS]', 'Reconnecting...');
       }, 5000);
     };
@@ -35,11 +47,13 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       _ws.removeEventListener('error', () => onClose);
       _ws.removeEventListener('open', () => onOpen);
     };
-  }, [_ws, setWs])
+  }, [_ws, setWs]);
 
   return (
-    <wsContext.Provider value={{ ws: _ws, connecting }}>{children}</wsContext.Provider>
-  )
-}
+    <wsContext.Provider value={{ ws: _ws, connecting }}>
+      {children}
+    </wsContext.Provider>
+  );
+};
 
 export const useWS = () => useContext<WSContext>(wsContext);

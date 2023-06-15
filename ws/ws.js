@@ -1,8 +1,13 @@
 /** @type {Set<WebSocket>} */
 const clients = new Set();
+let d = false;
 
-/** @param {WebSocketServer} wss */
-const socketHandler = (wss) => {
+/**
+ * @param {WebSocketServer} wss
+ * @param {boolean} debug
+ */
+const socketHandler = (wss, debug) => {
+  if (debug) d = true;
   wss.on('connection', (ws) => {
     ws.on('error', console.error);
     clients.add(ws);
@@ -14,33 +19,26 @@ const socketHandler = (wss) => {
   });
 };
 
-
 /** @param {any} data @param {string} nonce */
-const broadcastMessage = (
-  msg,
-  nonce,
-) => {
+const broadcastMessage = (msg, nonce) => {
   console.log(`[WebSocket Events]`, 'Emitted createMessage event');
+  if (d) console.log(`[WebSocket Events]`, `Message: `, msg);
   clients.forEach((ws) => {
-      ws.send(
-        JSON.stringify({
-          type: 'createMessage',
-          data: msg,
-          nonce,
-        }),
-      );
-    }
-  );
+    ws.send(
+      JSON.stringify({
+        type: 'createMessage',
+        data: msg,
+        nonce,
+      }),
+    );
+  });
 };
 /** @param {string} event @param {any} data */
-const broadcastEvent = (
-  event,
-  data
-) => {
+const broadcastEvent = (event, data) => {
   console.log(`[WebSocket Events]`, `Emitted ${event} event`);
+  if (d) console.log(`[WebSocket Events]`, `Data: `, data);
   clients.forEach((ws) => ws.send(JSON.stringify({ type: event, data })));
 };
-
 
 module.exports = {
   broadcastMessage,

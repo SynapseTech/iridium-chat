@@ -8,7 +8,7 @@ generator client {
 datasource db {
   provider = "mysql"
   url = env("DATABASE_URL")
-  //relationMode = "prisma"
+  relationMode = "prisma"
 }
 
 // Necessary for Next auth
@@ -28,6 +28,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -36,6 +37,8 @@ model Session {
   userId String
   expires DateTime
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
@@ -64,6 +67,8 @@ model Server {
   name String
   ownerId String
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
 }
 
 model TextChannel {
@@ -77,6 +82,8 @@ model TextChannel {
   // todo: server-channel relationships
   // serverId String
   // server Server @relation()
+
+  @@index([ownerId])
 }
 
 model TextMessage {
@@ -88,4 +95,7 @@ model TextMessage {
   channel TextChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   authorId String
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([channelId])
+  @@index([authorId])
 }
