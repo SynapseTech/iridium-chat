@@ -1,6 +1,14 @@
 import { FC, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Add, Hashtag, Moon, Sun1, Trash } from 'iconsax-react';
+import {
+  Add,
+  ArrowCircleDown,
+  CloseCircle,
+  Hashtag,
+  Moon,
+  Sun1,
+  Trash,
+} from 'iconsax-react';
 import { Server, TextChannel } from '@prisma/client';
 import { trpc } from '../utils/trpc';
 import CreateServerModal from './createServerModal';
@@ -32,6 +40,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
     useState<boolean>(false);
   const [createChannelModalOpen, setCreateChannelModalOpen] =
     useState<boolean>(false);
+  const [openServerMenu, setOpenServerMenu] = useState(false);
   const deleteServerMutation = trpc.server.delete.useMutation();
   const deleteChannelMutation = trpc.channel.delete.useMutation();
   const router = useRouter();
@@ -49,7 +58,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
    * Load accessible channels using tRPC on page load.
    */
   useEffect(() => {
-    if (loadChannelsQuery.data) setServers(loadChannelsQuery.data);
+    if (loadChannelsQuery.data) setChannels(loadChannelsQuery.data);
   }, [loadChannelsQuery.data]); // run when data fetch
 
   return (
@@ -64,6 +73,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
       />
       <CreateChannelModal
         open={createChannelModalOpen}
+        serverId={currentServerId!}
         onClose={async (id?: string) => {
           setCreateChannelModalOpen(false);
           await loadChannelsQuery.refetch();
@@ -86,51 +96,168 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
             Iridium
           </Link>
         </div>
+        {isServerSelected ? (
+          <div className='grid grid-cols-[1fr_20px] items-center justify-center pl-[2.25rem] pr-[0.75rem] text-lg font-semibold dark:text-slate-400'>
+            <p className='truncate'>
+              {
+                servers.filter((server) => server.id === currentServerId)[0]
+                  ?.name
+              }
+            </p>
+            {openServerMenu ? (
+              <CloseCircle
+                className='inline h-5 w-5 hover:dark:text-slate-500'
+                onClick={() => setOpenServerMenu(false)}
+              />
+            ) : (
+              <ArrowCircleDown
+                className='inline h-5 w-5 hover:dark:text-slate-500'
+                onClick={() => setOpenServerMenu(true)}
+              />
+            )}
+          </div>
+        ) : null}
+        {isServerSelected && openServerMenu ? (
+          <div className='hs-overlay fixed left-0 z-[60] overflow-y-auto overflow-x-hidden pl-[1.50rem] pt-[5px]'>
+            <div className='h-[200px] overflow-y-auto rounded-md p-5 dark:bg-gray-900'>
+              <div className='space-y-1.5'>
+                {servers.map(({ name, ownerId, id }) => (
+                  <a
+                    key={`server_${id}`}
+                    className={
+                      currentServerId && currentServerId === id
+                        ? 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md bg-gray-100 px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-white'
+                        : 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-gray-800 dark:hover:text-slate-300'
+                    }
+                    onMouseEnter={() => {
+                      router.prefetch(`/server/${id}`);
+                    }}
+                    onClick={() => {
+                      router.replace(`/server/${id}`);
+                      setOpenServerMenu(false);
+                    }}
+                  >
+                    <Hashtag color='currentColor' className='h-3.5 w-3.5' />
+                    <div className='flex-grow'>{name}</div>
+                    {ownerId === session?.user?.id && (
+                      <Trash
+                        color='currentColor'
+                        className='z-10 h-3.5 w-3.5 cursor-pointer text-red-500 hover:text-red-600'
+                        onClick={() => {
+                          deleteServerMutation
+                            .mutateAsync({ serverId: id })
+                            .then(async ({ success }) => {
+                              if (success) {
+                                await loadServersQuery.refetch();
+                                await router.replace('/server');
+                              }
+                            });
+                        }}
+                      />
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
         <nav className='flex w-full flex-col flex-wrap p-6'>
           <ul className='space-y-1.5'>
-            {servers.map(({ name, ownerId, id }) => (
-              <li key={`server_${id}`}>
-                <a
-                  className={
-                    currentServerId && currentServerId === id
-                      ? 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md bg-gray-100 px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
-                      : 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-gray-900 dark:hover:text-slate-300'
-                  }
-                  onMouseEnter={() => {
-                    router.prefetch(`/server/${id}`);
-                  }}
-                  onClick={() => {
-                    router.replace(`/server/${id}`);
-                  }}
-                >
-                  <Hashtag color='currentColor' className='h-3.5 w-3.5' />
-                  <div className='flex-grow'>{name}</div>
-                  {ownerId === session?.user?.id && (
-                    <Trash
-                      color='currentColor'
-                      className='h-3.5 w-3.5 cursor-pointer text-red-500 hover:text-red-600'
-                      onClick={() => {
-                        deleteServerMutation
-                          .mutateAsync({ serverId: id })
-                          .then(async ({ success }) => {
-                            if (success) {
-                              await loadServersQuery.refetch();
-                              await router.replace('/server');
-                            }
-                          });
+            {!currentServerId
+              ? servers.map(({ name, ownerId, id }) => (
+                  <li key={`server_${id}`}>
+                    <a
+                      className={
+                        currentServerId && currentServerId === id
+                          ? 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md bg-gray-100 px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
+                          : 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-gray-900 dark:hover:text-slate-300'
+                      }
+                      onMouseEnter={() => {
+                        router.prefetch(`/server/${id}`);
                       }}
-                    />
-                  )}
-                </a>
-              </li>
-            ))}
+                      onClick={() => {
+                        router.replace(`/server/${id}`);
+                      }}
+                    >
+                      <Hashtag color='currentColor' className='h-3.5 w-3.5' />
+                      <div className='flex-grow'>{name}</div>
+                      {ownerId === session?.user?.id && (
+                        <Trash
+                          color='currentColor'
+                          className='h-3.5 w-3.5 cursor-pointer text-red-500 hover:text-red-600'
+                          onClick={() => {
+                            deleteServerMutation
+                              .mutateAsync({ serverId: id })
+                              .then(async ({ success }) => {
+                                if (success) {
+                                  await loadServersQuery.refetch();
+                                  await router.replace('/server');
+                                }
+                              });
+                          }}
+                        />
+                      )}
+                    </a>
+                  </li>
+                ))
+              : channels
+                  .filter((c) => c.serverId === currentServerId)
+                  .map(({ name, serverId, id }) => (
+                    <li key={`channel_${id}`}>
+                      <a
+                        className={
+                          currentChannelId && currentChannelId === id
+                            ? 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md bg-gray-100 px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
+                            : 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-gray-900 dark:hover:text-slate-300'
+                        }
+                        onMouseEnter={() => {
+                          router.prefetch(
+                            `/server/${currentServerId}/channel/${id}`,
+                          );
+                        }}
+                        onClick={() => {
+                          router.replace(
+                            `/server/${currentServerId}/channel/${id}`,
+                          );
+                        }}
+                      >
+                        <Hashtag color='currentColor' className='h-3.5 w-3.5' />
+                        <div className='flex-grow'>{name}</div>
+                        {serverId === currentServerId &&
+                          servers.filter(
+                            (server) => server.id === currentServerId,
+                          )[0]?.ownerId === session?.user?.id && (
+                            <Trash
+                              color='currentColor'
+                              className='h-3.5 w-3.5 cursor-pointer text-red-500 hover:text-red-600'
+                              onClick={() => {
+                                deleteChannelMutation
+                                  .mutateAsync({ channelId: id })
+                                  .then(async ({ success }) => {
+                                    if (success) {
+                                      await loadChannelsQuery.refetch();
+                                      await router.replace(
+                                        `/server/${currentServerId}`,
+                                      );
+                                    }
+                                  });
+                              }}
+                            />
+                          )}
+                      </a>
+                    </li>
+                  ))}
             <li>
               <button
-                onClick={() => setCreateChannelModalOpen(true)}
+                onClick={() =>
+                  !currentServerId
+                    ? setCreateServerModalOpen(true)
+                    : setCreateChannelModalOpen(true)
+                }
                 className='flex w-full items-center gap-x-3.5 rounded-md bg-brand-600 px-2.5 py-2 text-sm text-white hover:bg-brand-700'
               >
                 <Add color='currentColor' className='h-3.5 w-3.5' />
-                Create Server
+                {!currentServerId ? 'Create Server' : 'Create Channel'}
               </button>
             </li>
             <li>
@@ -153,63 +280,6 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
             </li>
           </ul>
         </nav>
-        {isServerSelected ? (
-          <nav className='flex w-full flex-col flex-wrap p-6'>
-            <ul className='space-y-1.5'>
-              {channels.map(({ name, ownerId, id }) => (
-                <li key={`channel_${id}`}>
-                  <a
-                    className={
-                      currentChannelId && currentChannelId === id
-                        ? 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md bg-gray-100 px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-white'
-                        : 'flex w-full cursor-pointer items-center gap-x-3.5 rounded-md px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-gray-900 dark:hover:text-slate-300'
-                    }
-                    onMouseEnter={() => {
-                      router.prefetch(
-                        `/server/${currentServerId}/channel/${id}`,
-                      );
-                    }}
-                    onClick={() => {
-                      router.replace(
-                        `/server/${currentServerId}/channel/${id}`,
-                      );
-                    }}
-                  >
-                    <Hashtag color='currentColor' className='h-3.5 w-3.5' />
-                    <div className='flex-grow'>{name}</div>
-                    {ownerId === session?.user?.id && (
-                      <Trash
-                        color='currentColor'
-                        className='h-3.5 w-3.5 cursor-pointer text-red-500 hover:text-red-600'
-                        onClick={() => {
-                          deleteChannelMutation
-                            .mutateAsync({ channelId: id })
-                            .then(async ({ success }) => {
-                              if (success) {
-                                await loadChannelsQuery.refetch();
-                                await router.replace(
-                                  `/server/${currentServerId}/channel`,
-                                );
-                              }
-                            });
-                        }}
-                      />
-                    )}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <button
-                  onClick={() => setCreateChannelModalOpen(true)}
-                  className='flex w-full items-center gap-x-3.5 rounded-md bg-brand-600 px-2.5 py-2 text-sm text-white hover:bg-brand-700'
-                >
-                  <Add color='currentColor' className='h-3.5 w-3.5' />
-                  Create <Chanel></Chanel>
-                </button>
-              </li>
-            </ul>
-          </nav>
-        ) : null}
       </aside>
     </>
   );

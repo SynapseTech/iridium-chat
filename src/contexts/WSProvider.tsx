@@ -8,9 +8,7 @@ import {
 
 export type WSContext = { ws: WebSocket | undefined; connecting: boolean };
 
-const ws = new WebSocket(
-  'wss://rocky43007-reimagined-engine-jjj5gvj577j2qv7j-8080.preview.app.github.dev/',
-);
+const ws = new WebSocket('ws://localhost:8080');
 console.log('[WS]', 'Connected');
 
 const wsContext = createContext<WSContext>({ ws, connecting: false });
@@ -24,11 +22,7 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       console.log('[WS]', 'Connection Closed');
       setConnecting(true);
       setTimeout(() => {
-        setWs(
-          new WebSocket(
-            'wss://rocky43007-reimagined-engine-jjj5gvj577j2qv7j-8080.preview.app.github.dev/',
-          ),
-        );
+        setWs(new WebSocket('ws://localhost:8080'));
         console.log('[WS]', 'Reconnecting...');
       }, 5000);
     };

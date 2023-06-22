@@ -41,7 +41,10 @@ const ChatPage: NextPage<ChatPageProps> = ({ server }) => {
           e.preventDefault();
         }}
       >
-        <ApplicationSidebar currentServerId={server.id} />
+        <ApplicationSidebar
+          currentServerId={server.id}
+          isServerSelected={true}
+        />
       </main>
     </>
   );
