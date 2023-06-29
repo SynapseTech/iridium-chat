@@ -6,6 +6,7 @@ import {
   CloseCircle,
   Hashtag,
   Moon,
+  People,
   Sun1,
   Trash,
 } from 'iconsax-react';
@@ -119,7 +120,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
         ) : null}
         {isServerSelected && openServerMenu ? (
           <div className='hs-overlay fixed left-0 z-[60] overflow-y-auto overflow-x-hidden pl-[1.50rem] pt-[5px]'>
-            <div className='h-[200px] overflow-y-auto rounded-md p-5 dark:bg-gray-900'>
+            <div className='h-[200px] overflow-y-auto rounded-md bg-gray-300 p-5 dark:bg-gray-900'>
               <div className='space-y-1.5'>
                 {servers.map(({ name, ownerId, id }) => (
                   <a
@@ -157,6 +158,30 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
                     )}
                   </a>
                 ))}
+                {servers.filter((server) => server.id === currentServerId)[0]
+                  ?.ownerId === session?.user?.id && (
+                  <>
+                    <hr className='rounded-[3px] border-t-[3px] border-solid border-t-slate-500'></hr>
+                    <a
+                      className='flex w-full cursor-pointer items-center gap-x-3.5 rounded-md px-2.5 py-2 text-sm text-slate-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-gray-900 dark:hover:text-slate-300'
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          `${document.location.origin}/invite/${
+                            servers.filter(
+                              (server) => server.id === currentServerId,
+                            )[0]?.inviteLink
+                          }`,
+                        )
+                      }
+                    >
+                      <People
+                        color='currentColor'
+                        className='h-3.5 w-3.5 text-brand-700'
+                      />
+                      <div className='flex-grow text-brand-700'>Invite</div>
+                    </a>
+                  </>
+                )}
               </div>
             </div>
           </div>
