@@ -1,5 +1,11 @@
 'use client';
-import { createContext, Dispatch, SetStateAction, useContext, useState } from 'react';
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useState,
+} from 'react';
 import { ModalData } from '../components/modal';
 
 const GlobalModalContext = createContext({
@@ -23,16 +29,19 @@ export const GlobalModalProvider = ({
 };
 
 export const useGlobalModal = () => {
-  const context = useContext(GlobalModalContext)
-    ;
+  const context = useContext(GlobalModalContext);
   if (!context) {
-    throw new Error("useGlobalModal must be used within a GlobalModalContext");
+    throw new Error('useGlobalModal must be used within a GlobalModalContext');
   }
   return context;
 };
 
-export const createModal = (setState: SetStateAction<any>, data: Partial<ModalData>) => {
-  if (setState === undefined) throw new Error('setState is undefined!')
-  if (typeof setState !== 'function') throw new Error('setState is not a function!')
-  setState((p: any) => ({ ...p, ...data }))
-}
+export const createModal = (
+  setState: SetStateAction<any>,
+  data: Partial<ModalData>,
+) => {
+  if (setState === undefined) throw new Error('setState is undefined!');
+  if (typeof setState !== 'function')
+    throw new Error('setState is not a function!');
+  setState((p: any) => ({ ...p, ...data }));
+};

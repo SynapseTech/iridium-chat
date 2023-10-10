@@ -7,6 +7,7 @@ import {
   Hashtag,
   Moon,
   People,
+  Setting4 as Setting,
   Sun1,
   Trash,
 } from 'iconsax-react';
@@ -15,7 +16,9 @@ import { trpc } from '../utils/trpc';
 import CreateServerModal from './createServerModal';
 import CreateChannelModal from './createChannelModal';
 import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
+import { createModal, useGlobalModal } from '../contexts/ModalProvider';
+import { version } from '../../package.json';
 
 type ApplicationSidebarProps = {
   currentServerId?: string;
@@ -31,10 +34,14 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
   currentServerId,
   isServerSelected,
 }) => {
+  const { state, setState } = useGlobalModal();
   const { data: session } = useSession();
   const [servers, setServers] = useState<Server[]>([]);
   const [channels, setChannels] = useState<TextChannel[]>([]);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [openSettings, setSettingsState] = useState<boolean>(
+    state.type === 'settings' ? state.state! : false,
+  );
   const loadServersQuery = trpc.server.getAccessible.useQuery();
   const loadChannelsQuery = trpc.channel.getAccessible.useQuery();
   const [createServerModalOpen, setCreateServerModalOpen] =
@@ -45,6 +52,27 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
   const deleteServerMutation = trpc.server.delete.useMutation();
   const deleteChannelMutation = trpc.channel.delete.useMutation();
   const router = useRouter();
+
+  useEffect(() => {
+    createModal(setState, {
+      title: 'Settings',
+      type: 'settings',
+      content: (
+        <div className='grid grid-cols-1 gap-2'>
+          <p>
+            <strong>Version:</strong> {version}
+          </p>
+          <button
+            className='inline-flex items-center justify-center gap-2 rounded-full border border-transparent bg-red-500 px-3 py-2 text-sm font-semibold transition-all hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 dark:focus:ring-offset-gray-800'
+            onClick={() => signOut()}
+          >
+            Sign Out
+          </button>
+        </div>
+      ),
+      state: openSettings,
+    });
+  }, [openSettings]);
 
   useEffect(() => {
     setTheme((localStorage.getItem('theme') as 'light' | 'dark') || 'light');
@@ -119,7 +147,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
           </div>
         ) : null}
         {isServerSelected && openServerMenu ? (
-          <div className='hs-overlay fixed left-0 z-[60] overflow-y-auto overflow-x-hidden pl-[1.50rem] pt-[5px]'>
+          <div className='hs-overlay fixed left-0 z-[60] w-[16%] overflow-y-auto overflow-x-hidden pl-[1.90rem] pt-[5px]'>
             <div className='h-[200px] overflow-y-auto rounded-md bg-gray-300 p-5 dark:bg-gray-900'>
               <div className='space-y-1.5'>
                 {servers.map(({ name, ownerId, id }) => (
@@ -186,7 +214,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
             </div>
           </div>
         ) : null}
-        <nav className='flex w-full flex-col flex-wrap p-6'>
+        <nav className='flex w-full flex-col flex-wrap p-6 pl-[1.90rem]'>
           <ul className='space-y-1.5'>
             {!currentServerId
               ? servers.map(({ name, ownerId, id }) => (
@@ -286,22 +314,34 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
               </button>
             </li>
             <li>
-              <button
-                className='bottom-0 rounded-xl bg-gray-300 p-3'
-                onClick={() => {
-                  if (localStorage.getItem('theme') === 'dark') {
-                    localStorage.setItem('theme', 'light');
-                    setTheme('light');
-                    document.body.classList.remove('dark');
-                  } else {
-                    localStorage.setItem('theme', 'dark');
-                    setTheme('dark');
-                    document.body.classList.add('dark');
-                  }
-                }}
-              >
-                {theme === 'dark' ? <Sun1 /> : <Moon />}
-              </button>
+              <div className='grid grid-cols-2 items-center justify-center gap-3'>
+                <button
+                  className='bottom-0 flex items-center justify-center rounded-xl bg-gray-300 p-3'
+                  onClick={() => {
+                    if (localStorage.getItem('theme') === 'dark') {
+                      localStorage.setItem('theme', 'light');
+                      setTheme('light');
+                      document.body.classList.remove('dark');
+                    } else {
+                      localStorage.setItem('theme', 'dark');
+                      setTheme('dark');
+                      document.body.classList.add('dark');
+                    }
+                  }}
+                >
+                  {theme === 'dark' ? <Sun1 /> : <Moon />}
+                </button>
+                <button
+                  className='bottom-0 flex items-center justify-center rounded-xl bg-gray-300 p-3'
+                  onClick={() => {
+                    setSettingsState(true);
+                    state['state'] = true;
+                    createModal(setState, state);
+                  }}
+                >
+                  <Setting />
+                </button>
+              </div>
             </li>
           </ul>
         </nav>

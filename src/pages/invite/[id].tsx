@@ -71,7 +71,7 @@ const InvitesPage = ({ mData, server, username }: InvitePageProps) => {
   }
 
   return (
-    <div>
+    <>
       <Head>
         <title>Iridium Chat</title>
       </Head>
@@ -108,7 +108,7 @@ const InvitesPage = ({ mData, server, username }: InvitePageProps) => {
           </div>
         </div>
       </main>
-    </div>
+    </>
   );
 };
 
