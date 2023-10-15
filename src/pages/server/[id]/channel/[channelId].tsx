@@ -20,6 +20,7 @@ import MessageBox from '../../../../components/messageBox';
 import ApplicationSidebar from '../../../../components/appSidebar';
 import { useWS } from '../../../../contexts/WSProvider';
 import useMessages, { MessageType } from '../../../../hooks/useMessages';
+import { MemberList } from '../../../../components/memberList';
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -94,7 +95,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
       </Head>
 
       <main
-        className='flex h-screen w-screen bg-white dark:bg-slate-900'
+        className='flex h-screen w-screen grid-flow-col grid-cols-3 bg-white dark:bg-slate-900 '
         onContextMenu={(e) => {
           e.preventDefault();
         }}
@@ -147,6 +148,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
             />
           </div>
         </div>
+        <MemberList serverId={serverId} />
       </main>
     </>
   );
@@ -180,6 +182,28 @@ export const getServerSideProps: GetServerSideProps = async ({
     return {
       notFound: true,
     };
+
+  const isServerMember = await prisma.serverMember.findFirst({
+    where: {
+      serverId: channel.serverId,
+      userId: session.user?.id,
+    },
+  });
+
+  if (!isServerMember) {
+    const server = await prisma.server.findUnique({
+      where: {
+        id: channel.serverId,
+      },
+    });
+    if (server?.ownerId !== session.user?.id)
+      return {
+        redirect: {
+          destination: '/server',
+          permanent: false,
+        },
+      };
+  }
 
   return {
     props: {

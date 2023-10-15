@@ -2,6 +2,12 @@ import { authedProcedure, t } from '../trpc';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { User as IUser } from '@prisma/client';
+
+export type User = {
+  user: IUser | null;
+  role: 'owner' | 'member';
+};
 
 export const serverRouter = t.router({
   create: authedProcedure
@@ -113,6 +119,77 @@ export const serverRouter = t.router({
           },
         });
 
+        return { success: true };
+      } else return { success: false };
+    }),
+  getMembers: authedProcedure
+    .input(z.object({ serverId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const server = await ctx.prisma.server.findUnique({
+        where: {
+          id: input.serverId,
+        },
+      });
+
+      if (!server) return { success: false };
+
+      const _members = await ctx.prisma.serverMember.findMany({
+        where: {
+          serverId: server.id,
+        },
+      });
+
+      const detailedMembers: User[] = await Promise.all(
+        _members.map(async (member) => {
+          const user = await ctx.prisma.user.findUnique({
+            where: {
+              id: member.userId,
+            },
+          });
+
+          return {
+            user: user,
+            role: 'member',
+          };
+        }),
+      );
+
+      detailedMembers.push({
+        user: await ctx.prisma.user.findUnique({
+          where: {
+            id: server.ownerId,
+          },
+        }),
+        role: 'owner',
+      });
+
+      return detailedMembers.sort((a, b) =>
+        a!.user!.name!.localeCompare(b!.user!.name!),
+      );
+    }),
+  kickMember: authedProcedure
+    .input(
+      z.object({
+        serverId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const server = await ctx.prisma.server.findUnique({
+        where: {
+          id: input.serverId,
+        },
+      });
+
+      if (!server) return { success: false };
+
+      if (server.ownerId === ctx.session.user.id) {
+        await ctx.prisma.serverMember.delete({
+          where: {
+            serverId: server.id,
+            userId: input.userId,
+          },
+        });
         return { success: true };
       } else return { success: false };
     }),

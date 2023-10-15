@@ -20,6 +20,7 @@ import MessageBox from '../../../components/messageBox';
 import ApplicationSidebar from '../../../components/appSidebar';
 import { useWS } from '../../../contexts/WSProvider';
 import useMessages, { MessageType } from '../../../hooks/useMessages';
+import { MemberList } from '../../../components/memberList';
 
 type ChatPageServerSideProps = {
   server: Server;
@@ -45,6 +46,9 @@ const ChatPage: NextPage<ChatPageProps> = ({ server }) => {
           currentServerId={server.id}
           isServerSelected={true}
         />
+
+        <div className='flex h-full w-full flex-1 flex-col overflow-hidden'></div>
+        <MemberList serverId={server.id} />
       </main>
     </>
   );
@@ -79,7 +83,22 @@ export const getServerSideProps: GetServerSideProps = async ({
       notFound: true,
     };
 
-  console.log(server);
+  const isServerMember = await prisma.serverMember.findFirst({
+    where: {
+      serverId: serverId,
+      userId: session.user?.id,
+    },
+  });
+
+  if (!isServerMember) {
+    if (server.ownerId !== session.user?.id)
+      return {
+        redirect: {
+          destination: '/server',
+          permanent: false,
+        },
+      };
+  }
 
   return {
     props: {
