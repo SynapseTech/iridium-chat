@@ -1,8 +1,15 @@
 const http = require('http');
 const { parse } = require('url');
 const { WebSocketServer } = require('ws');
-const { socketHandler, broadcastMessage, broadcastEvent } = require('./ws');
+const {
+  socketHandler,
+  broadcastMessage,
+  broadcastEvent,
+  clients,
+} = require('./ws');
+const { startWSConnectionCheckCronJob } = require('./cron');
 require('dotenv').config();
+debug = false;
 
 /**
  *
@@ -34,6 +41,11 @@ const requestListener = function (req, res) {
     return;
   }
   if (req.url === '/stats') {
+    if (debug === false) {
+      res.writeHead(403);
+      res.end();
+      return;
+    }
     res.writeHead(200);
     res.end(JSON.stringify({ clients: wss.clients.size }));
     return;
@@ -45,17 +57,40 @@ const server = http.createServer(requestListener);
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const wss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
-/** @type {Set<WebSocket>} */
-const clients = new Set();
+/** @type {Set<{id: String, ws: WebSocket, createdAt: Date}>} */
 
 server.on('upgrade', function upgrade(request, socket, head) {
-  const { pathname } = parse(request.url);
+  const { pathname, query } = parse(request.url);
 
+  if (query) {
+    const [type, data] = query.split('=');
+
+    if (debug) console.log(type, data);
+    if (type === 'id') {
+      if (debug) console.log('Trying reconnection event');
+      if (clients === undefined) return;
+      if (debug) console.log(clients);
+      const ws = [...clients].find((c) => c.id === data);
+      if (ws) {
+        ws.isActive = true;
+        wss.handleUpgrade(request, socket, head, function done(ws) {
+          wss.emit('connection', ws, request);
+          console.log(
+            '[Iridium WS - WebSocket Status] Upgraded WebSocket and emitted reconnection event',
+          );
+        });
+      } else {
+        socket.destroy();
+      }
+      return;
+    }
+    return;
+  }
   if (pathname === '/') {
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('connection', ws, request);
       console.log(
-        '[Iridium WS] Upgraded WebSocket and emitted connection event',
+        '[Iridium WS - Events] Upgraded WebSocket and emitted connection event',
       );
     });
   } else {
@@ -66,14 +101,18 @@ server.on('upgrade', function upgrade(request, socket, head) {
 // Websocket Server
 /** @param {WebSocketServer} wss */
 function startWS(wss) {
-  console.log('[Iridium WS] Started WebSocket Server');
-  if (process.argv.includes('--debug'))
-    console.log('[Iridium WS] Debug mode enabled');
-  socketHandler(wss, process.argv.includes('--debug') ? true : false);
+  console.log('[Iridium WS - Info] Started WebSocket Server');
+  if (process.argv.includes('--debug')) {
+    console.log('[Iridium WS - Info] Debug mode enabled');
+    debug = true;
+  }
+
+  socketHandler(wss, debug);
+  startWSConnectionCheckCronJob();
 }
 
-startWS(wss, clients);
+startWS(wss);
 const port = 8080;
 server.listen(port, () => {
-  console.log(`[Iridium WS] WebSocket Server listening on port ${port}`);
+  console.log(`[Iridium WS - Info] WebSocket Server listening on port ${port}`);
 });

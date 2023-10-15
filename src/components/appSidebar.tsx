@@ -18,7 +18,7 @@ import CreateChannelModal from './createChannelModal';
 import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
 import { createModal, useGlobalModal } from '../contexts/ModalProvider';
-import { version } from '../../package.json';
+import { useWS } from '../contexts/WSProvider';
 
 type ApplicationSidebarProps = {
   currentServerId?: string;
@@ -35,6 +35,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
   isServerSelected,
 }) => {
   const { state, setState } = useGlobalModal();
+  const { ws } = useWS();
   const { data: session } = useSession();
   const [servers, setServers] = useState<Server[]>([]);
   const [channels, setChannels] = useState<TextChannel[]>([]);
@@ -60,7 +61,8 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
       content: (
         <div className='grid grid-cols-1 gap-2'>
           <p>
-            <strong>Version:</strong> {version}
+            <strong>Version:</strong>{' '}
+            {process.env.NEXT_PUBLIC_REACT_APP_VERSION}
           </p>
           <button
             className='inline-flex items-center justify-center gap-2 rounded-full border border-transparent bg-red-500 px-3 py-2 text-sm font-semibold transition-all hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 dark:focus:ring-offset-gray-800'
@@ -68,6 +70,15 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
           >
             Sign Out
           </button>
+          {process.env.NEXT_PUBLIC_IS_DEV === 'true' && (
+            <button
+              onClick={() => {
+                ws?.close();
+              }}
+            >
+              Kill WS
+            </button>
+          )}
         </div>
       ),
       state: openSettings,

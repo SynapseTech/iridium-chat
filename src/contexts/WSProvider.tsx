@@ -6,45 +6,85 @@ import {
   useState,
 } from 'react';
 
-export type WSContext = { ws: WebSocket | undefined; connecting: boolean };
+export type WSContext = { ws: WebSocket | null; connecting: boolean };
 
-const ws = new WebSocket('ws://localhost:8080');
-console.log('[WS]', 'Connected');
+const wsContext = createContext<WSContext>({ ws: null, connecting: false });
 
-const wsContext = createContext<WSContext>({ ws, connecting: false });
+export const useWebSocket = () => {
+  const [ws, setWs] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    const newWs = new WebSocket('ws://localhost:8080');
+    setWs(newWs);
+
+    return () => {
+      newWs.close();
+    };
+  }, []);
+
+  return {
+    ws,
+    setWs,
+  };
+};
 
 export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
-  const [_ws, setWs] = useState<WebSocket>(ws);
+  const { ws, setWs } = useWebSocket();
   const [connecting, setConnecting] = useState(false);
+  const [sentHandshake, setSentHandshake] = useState(false);
 
   useEffect(() => {
     const onClose = () => {
-      console.log('[WS]', 'Connection Closed');
+      console.log('[WebSocket] Connection closed. Attempting to reconnect...');
       setConnecting(true);
       setTimeout(() => {
-        setWs(new WebSocket('ws://localhost:8080'));
-        console.log('[WS]', 'Reconnecting...');
+        const connectionID = window.localStorage.getItem('wsConnectionID');
+        const reconnectionURL = `localhost:8080/?id=${connectionID}`;
+        console.log('[WebSocket] Reconnecting to', reconnectionURL);
+        const newWs = new WebSocket(`ws://${reconnectionURL}`);
+        setWs(newWs);
       }, 5000);
     };
 
     const onOpen = () => {
       setConnecting(false);
-      console.log('[WS]', 'Connected');
+      console.log('[WebSocket] Connected to server.');
+      if (!sentHandshake) {
+        setSentHandshake(true);
+        ws?.send('handshake');
+      }
     };
 
-    _ws.addEventListener('close', onClose);
-    _ws.addEventListener('error', () => onClose);
-    _ws.addEventListener('open', () => onOpen);
+    const onMessage = (event: MessageEvent) => {
+      const message = JSON.parse(event.data);
+      // console.log('[WebSocket] Received message:', message);
+      if (message.type === 'connectionID') {
+        setSentHandshake(true);
+        const connectionID = message.data;
+        // console.log('[WebSocket] Connection ID:', connectionID);
+        window.localStorage.setItem('wsConnectionID', connectionID);
+      }
+    };
+
+    if (ws) {
+      ws.addEventListener('close', onClose);
+      ws.addEventListener('error', onClose);
+      ws.addEventListener('open', onOpen);
+      ws.addEventListener('message', onMessage);
+    }
 
     return () => {
-      _ws.removeEventListener('close', onClose);
-      _ws.removeEventListener('error', () => onClose);
-      _ws.removeEventListener('open', () => onOpen);
+      if (ws) {
+        ws.removeEventListener('close', onClose);
+        ws.removeEventListener('error', onClose);
+        ws.removeEventListener('open', onOpen);
+        ws.removeEventListener('message', onMessage);
+      }
     };
-  }, [_ws, setWs]);
+  }, [ws, sentHandshake]);
 
   return (
-    <wsContext.Provider value={{ ws: _ws, connecting }}>
+    <wsContext.Provider value={{ ws, connecting }}>
       {children}
     </wsContext.Provider>
   );

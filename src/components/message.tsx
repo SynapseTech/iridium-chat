@@ -45,6 +45,7 @@ const Message: FC<MessageProps> = ({ message, pending = false, _key }) => {
         <CM.Trigger>
           <div className='flex gap-x-3'>
             <img
+              key={_key}
               className='inline-block h-12 w-12 rounded-full ring-2 ring-white dark:ring-gray-800'
               src={message.author.image ?? '/placeholder_avatar.svg'}
               alt={`${message.author.name}'s Avatar`}
