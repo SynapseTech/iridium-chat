@@ -9,7 +9,7 @@ import {
   NextPage,
 } from 'next';
 import Head from 'next/head';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Message from '../../../../components/message';
 import { getServerAuthSession } from '../../../../server/common/get-server-auth-session';
 import { trpc } from '../../../../utils/trpc';

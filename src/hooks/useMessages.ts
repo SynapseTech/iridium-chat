@@ -5,7 +5,10 @@ import { useRouter } from 'next/router';
 import { trpc } from '../utils/trpc';
 import { RawEmbed } from '../server/trpc/router/channel';
 
-export type MessageType = TextMessage & { author: Omit<User, "email" | "emailVerified">, embeds: RawEmbed[] };
+export type MessageType = TextMessage & {
+  author: Omit<User, 'email' | 'emailVerified'>;
+  embeds: RawEmbed[];
+};
 
 /**
  * Custom hook to handle loading of messages.
@@ -78,23 +81,35 @@ const useMessages = (
     }
 
     if (data.type === 'deleteMessage') {
+      console.log('[useMessages] deleteMessage', data.data);
+      onRecieve?.(data.data, data.nonce);
       setMessages((prev) => {
-        const index = prev.findIndex((msg) => msg.id === data.data.id);
+        const index = prev.findIndex(
+          (msg) => msg.id === (data.data as unknown as { id: string }).id,
+        );
         if (index !== -1) {
           prev.splice(index, 1);
-          return prev;
+          return [...prev]; // create a new array to trigger a rerender
         }
         return prev;
       });
     }
 
     if (data.type === 'editMessage') {
+      console.log('[useMessages] editMessage', data.data);
       onRecieve?.(data.data, data.nonce);
       setMessages((prev) => {
-        const index = prev.findIndex((msg) => msg.id === data.data.id);
+        const index = prev.findIndex(
+          (msg) =>
+            msg.id ===
+            (data.data as unknown as { messageId: string; content: string })
+              .messageId,
+        );
         if (index !== -1) {
-          prev[index] = data.data;
-          return prev;
+          prev[index]!.content = (
+            data.data as unknown as { messageId: string; content: string }
+          ).content;
+          return [...prev]; // create a new array to trigger a rerender
         }
         return prev;
       });

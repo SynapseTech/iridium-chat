@@ -1,6 +1,6 @@
 {
   "name": "learn-t3-stack",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "private": true,
   "scripts": {
     "build": "next build",
@@ -54,7 +54,7 @@
     "@types/prettier": "^2.7.2",
     "@types/prismjs": "^1.26.0",
     "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11",
+    "@types/react-dom": "^18.2.13",
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",

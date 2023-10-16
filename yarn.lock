@@ -667,7 +667,7 @@
   resolved "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.8.tgz"
   integrity sha512-kMpQpfZKSCBqltAJwskgePRaYRFukDkm1oItcAbC3gNELR20XIBcN9VRgg4+m8DKsTfkWeA4m4Imp4DDuWy7FQ==
 
-"@types/react-dom@*", "@types/react-dom@^18.0.11":
+"@types/react-dom@*", "@types/react-dom@^18.2.13":
   version "18.2.13"
   resolved "https://registry.npmjs.org/@types/react-dom/-/react-dom-18.2.13.tgz"
   integrity sha512-eJIUv7rPP+EC45uNYp/ThhSpE16k22VJUknt5OLoH9tbXoi8bMhwLf5xRuWMywamNbWzhrSmU7IBJfPup1+3fw==

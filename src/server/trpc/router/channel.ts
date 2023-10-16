@@ -348,7 +348,10 @@ export const channelRouter = t.router({
           },
           body: JSON.stringify({
             type: 'editMessage',
-            data: message,
+            data: {
+              messageId: message.id,
+              content: input.content,
+            },
           }),
         });
         return { success: true };
