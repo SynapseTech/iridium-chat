@@ -193,4 +193,19 @@ export const serverRouter = t.router({
         return { success: true };
       } else return { success: false };
     }),
+  getAllWebSocketMembers: authedProcedure.query(async ({ ctx }) => {
+    const onlineMembers = await fetch('http://localhost:8080/getClients', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: process.env.WS_AUTH_TOKEN!,
+      },
+    });
+
+    const onlineMembersJson = await onlineMembers.json();
+
+    return onlineMembersJson.map((member: { id: string; userId: string }) => {
+      return member.userId;
+    });
+  }),
 });

@@ -1,3 +1,5 @@
+import { Session } from 'next-auth';
+import { useSession } from 'next-auth/react';
 import {
   createContext,
   ReactNode,
@@ -61,6 +63,12 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       if (message.type === 'connectionID') {
         setSentHandshake(true);
         const connectionID = message.data;
+        const userID = window.localStorage.getItem('userId');
+        const authenticate = {
+          type: 'authenticate',
+          data: { connectionID, userID },
+        };
+        ws?.send(JSON.stringify(authenticate));
         // console.log('[WebSocket] Connection ID:', connectionID);
         window.localStorage.setItem('wsConnectionID', connectionID);
       }

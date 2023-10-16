@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/_app.tsx
 import '../styles/globals.css';
-import { SessionProvider } from 'next-auth/react';
+import { SessionProvider, getSession } from 'next-auth/react';
 import type { AppType } from 'next/dist/shared/lib/utils';
 import { trpc } from '../utils/trpc';
 import { useEffect } from 'react';
@@ -53,6 +53,19 @@ Iridium Chat: A Synapse Technologies Product. Check out the code at https://gith
 		`);
     }
   }, []);
+
+  useEffect(() => {
+    // Save User ID when session is not null
+    async function _getSession() {
+      const _s = await getSession((pageProps as any).session);
+      if (_s !== null || _s !== undefined) {
+        localStorage.setItem('userId', _s!.user!.id);
+      } else {
+        localStorage.removeItem('userId');
+      }
+    }
+    _getSession();
+  }, [(pageProps as any).session]);
   return (
     <SessionProvider session={(pageProps as any).session}>
       <WebSocketProvider>

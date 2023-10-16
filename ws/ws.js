@@ -1,5 +1,5 @@
 let d = false;
-/** @type {Set<{id: String, ws: WebSocket, createdAt: Date, isActive: boolean}>} */
+/** @type {Set<{id: String, ws: WebSocket, createdAt: Date, isActive: boolean, userId?: string}>} */
 const _clients = new Set();
 /**
  * @param {WebSocketServer} wss
@@ -29,6 +29,21 @@ const socketHandler = (wss, debug) => {
             `Client ${connectionID} Handshake Received`,
           );
           ws.send(JSON.stringify({ type: 'connectionID', data: connectionID }));
+          return;
+        }
+        const parsedData = JSON.parse(e.data);
+        if (parsedData.type === 'authenticate') {
+          [..._clients].find(
+            (c) => c.id === parsedData.data.connectionID,
+          ).userId = parsedData.data.userID;
+          console.log(
+            '[Iridium WS - Events]',
+            'Authenticated client with ID: ',
+            parsedData.data.connectionID,
+            ' | User ID: ',
+            parsedData.data.userID,
+          );
+          return;
         }
       };
       console.log(
