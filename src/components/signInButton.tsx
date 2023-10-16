@@ -46,7 +46,10 @@ const SignInButton: FC<SignInButtonProps> = ({
     <button
       onClick={async (e) => {
         e.preventDefault();
-        if (!isLoggedIn) signIn();
+        if (!isLoggedIn) {
+          signIn();
+          return;
+        }
         if (type === 'invite') {
           if (
             servers?.filter((member) => member.id === serverId)[0]?.ownerId ===

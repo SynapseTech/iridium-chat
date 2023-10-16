@@ -30,9 +30,8 @@ export const getServerSideProps = async ({
       state: true,
     } as ModalData;
   }
-  const session = await getServerAuthSession({ req, res });
 
-  if (!session || !params)
+  if (!params)
     return {
       redirect: {
         destination: '/',
