@@ -1,33 +1,22 @@
 import Head from 'next/head';
 import ApplicationSidebar from '../../components/appSidebar';
-import { ModalData } from '../../components/modal';
-import { NextRequest } from 'next/server';
 import { createModal, useGlobalModal } from '../../contexts/ModalProvider';
+import { useEffect } from 'react';
 
-export const getServerSideProps = ({ req }: { req: NextRequest }) => {
-  if (req.cookies['terms' as keyof unknown] !== '1') {
-    return {
-      props: {
-        mData: {
-          title: 'Notice',
-          type: 'terms',
-          content: `Iridium Chat is still in development.\n\nThis is not a finished product.\n\nDesigns and flows are still subject to change.\n\n**Thank you for using Iridium Chat!**\n\n*- The Iridium Chat Team*`,
-          state: true,
-        } as ModalData,
-      },
-    };
-  }
-  return {
-    props: {},
-  };
-};
-
-const ChannelsPage = ({ mData }: { mData?: ModalData }) => {
+const ChannelsPage = () => {
   const { setState } = useGlobalModal();
 
-  if (mData) {
-    createModal(setState, mData);
-  }
+  useEffect(() => {
+    if (!document.cookie.includes('terms=1')) {
+      createModal(setState, {
+        title: 'Terms of Service',
+        type: 'terms',
+        content: `Iridium Chat is still in development.\n\nThis is not a finished product.\n\nDesigns and flows are still subject to change.\n\n**Thank you for using Iridium Chat!**\n\n*- The Iridium Chat Team*`,
+        state: true,
+      });
+    }
+  }, []);
+
   return (
     <div>
       <Head>

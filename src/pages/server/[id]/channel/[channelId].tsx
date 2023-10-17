@@ -21,6 +21,10 @@ import ApplicationSidebar from '../../../../components/appSidebar';
 import { useWS } from '../../../../contexts/WSProvider';
 import useMessages, { MessageType } from '../../../../hooks/useMessages';
 import { MemberList } from '../../../../components/memberList';
+import {
+  createModal,
+  useGlobalModal,
+} from '../../../../contexts/ModalProvider';
 
 type ChatPageServerSideProps = {
   channel: TextChannel;
@@ -87,6 +91,19 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
       loadMessages();
     }
   }
+
+  const { setState } = useGlobalModal();
+
+  useEffect(() => {
+    if (!document.cookie.includes('terms=1')) {
+      createModal(setState, {
+        title: 'Terms of Service',
+        type: 'terms',
+        content: `Iridium Chat is still in development.\n\nThis is not a finished product.\n\nDesigns and flows are still subject to change.\n\n**Thank you for using Iridium Chat!**\n\n*- The Iridium Chat Team*`,
+        state: true,
+      });
+    }
+  }, []);
 
   return (
     <>

@@ -9,7 +9,7 @@ import {
   NextPage,
 } from 'next';
 import Head from 'next/head';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Message from '../../../components/message';
 import { getServerAuthSession } from '../../../server/common/get-server-auth-session';
 import { trpc } from '../../../utils/trpc';
@@ -21,6 +21,7 @@ import ApplicationSidebar from '../../../components/appSidebar';
 import { useWS } from '../../../contexts/WSProvider';
 import useMessages, { MessageType } from '../../../hooks/useMessages';
 import { MemberList } from '../../../components/memberList';
+import { createModal, useGlobalModal } from '../../../contexts/ModalProvider';
 
 type ChatPageServerSideProps = {
   server: Server;
@@ -30,6 +31,19 @@ type ChatPageServerSideProps = {
 type ChatPageProps = ChatPageServerSideProps;
 
 const ChatPage: NextPage<ChatPageProps> = ({ server }) => {
+  const { setState } = useGlobalModal();
+
+  useEffect(() => {
+    if (!document.cookie.includes('terms=1')) {
+      createModal(setState, {
+        title: 'Terms of Service',
+        type: 'terms',
+        content: `Iridium Chat is still in development.\n\nThis is not a finished product.\n\nDesigns and flows are still subject to change.\n\n**Thank you for using Iridium Chat!**\n\n*- The Iridium Chat Team*`,
+        state: true,
+      });
+    }
+  }, []);
+
   return (
     <>
       <Head>
