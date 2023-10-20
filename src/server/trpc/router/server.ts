@@ -193,7 +193,7 @@ export const serverRouter = t.router({
         return { success: true };
       } else return { success: false };
     }),
-  getAllWebSocketMembers: authedProcedure.query(async ({ ctx }) => {
+  getAllWebSocketMembers: authedProcedure.query(async () => {
     const onlineMembers = await fetch('http://localhost:8080/getClients', {
       method: 'GET',
       headers: {
@@ -207,5 +207,18 @@ export const serverRouter = t.router({
     return onlineMembersJson.map((member: { id: string; userId: string }) => {
       return member.userId;
     });
+  }),
+  getWebSockets: authedProcedure.query(async () => {
+    const clients = await fetch('http://localhost:8080/getClients', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: process.env.WS_AUTH_TOKEN!,
+      },
+    });
+
+    const clientsJson = await clients.json();
+
+    return clientsJson;
   }),
 });

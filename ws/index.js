@@ -56,6 +56,22 @@ const requestListener = function (req, res) {
     );
     return;
   }
+  if (
+    req.url === 'getClients' &&
+    req.method === 'GET' &&
+    req.headers.authorization === process.env.WS_AUTH_TOKEN
+  ) {
+    res.setHeader('Content-Type', 'application/json');
+    res.writeHead(200);
+    res.end(
+      JSON.stringify(
+        [...clients]
+          .filter((c) => c.isActive)
+          .map((c) => ({ id: c.id, userId: c.userId })),
+      ),
+    );
+    return;
+  }
   if (req.url === '/stats') {
     if (debug === false) {
       res.writeHead(403);
