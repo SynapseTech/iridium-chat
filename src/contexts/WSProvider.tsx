@@ -34,13 +34,13 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
     setConnecting(true);
 
     newWS.onopen = () => {
-      console.log('[WebSocket] WebSocket connection established.');
+      console.log('[WebSocket] Connection established.');
       setWS(newWS);
       setConnecting(false);
     };
 
     newWS.onclose = () => {
-      console.log('WebSocket connection closed. Attempting to reconnect...');
+      console.log('[WebSocket] Connection closed. Attempting to reconnect...');
       setTimeout(() => {
         const validConnectionID = webSocketClients.find(
           (client) => client.id === connectionID,
@@ -56,7 +56,7 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
           );
           const newConnection = new WebSocket(url);
           newConnection.onopen = () => {
-            console.log('[WebSocket] WebSocket connection established.');
+            console.log('[WebSocket] Connection established.');
             setWS(newConnection);
             newConnection.send('handshake');
           };
@@ -85,7 +85,7 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
     setConnecting(true);
 
     newWS.onopen = () => {
-      console.log('[WebSocket] WebSocket connection established.');
+      console.log('[WebSocket] Connection established.');
       setWS(newWS);
       newWS?.send('handshake');
     };
@@ -110,9 +110,7 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
     };
 
     newWS.onclose = () => {
-      console.log(
-        '[WebSocket] WebSocket connection closed. Attempting to reconnect...',
-      );
+      console.log('[WebSocket] Connection closed. Attempting to reconnect...');
       setTimeout(() => {
         const connectionID = localStorage.getItem('wsConnectionID');
         if (connectionID) {
@@ -126,7 +124,7 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
           );
           const newConnection = new WebSocket(url);
           newConnection.onopen = () => {
-            console.log('[WebSocket] WebSocket connection established.');
+            console.log('[WebSocket] Connection established.');
             newConnection.send('handshake');
           };
 
