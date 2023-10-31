@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { MessageType } from '../hooks/useMessages';
 import { MessageEdit, Trash } from 'iconsax-react';
 import { trpc } from '../utils/trpc';
@@ -104,6 +104,7 @@ const Message: FC<MessageProps> = ({ message, pending = false, _key }) => {
               <div className='flex flex-col gap-y-2'>
                 {message.embeds
                   ? message.embeds.map(({ title, description, url }, index) => {
+                      // Image Check
                       if (
                         /(http)?s?:?(\/\/[^"']*\.(?:png|jpg|jpeg|gif|png|svg))/i.test(
                           url,
@@ -117,6 +118,35 @@ const Message: FC<MessageProps> = ({ message, pending = false, _key }) => {
                           />
                         );
 
+                      // Youtube/Social Checks
+                      if (
+                        /(http)?s?:?(\/\/[^"']*\.(?:youtube|youtu|youtube-nocookie|twitch|tiktok|facebook|instagram|twitter|soundcloud|vimeo))/i.test(
+                          url,
+                        )
+                      )
+                        if (
+                          /(http)?s?:?(\/\/[^"']*\.(?:youtube|youtu|youtube-nocookie))/i.test(
+                            url,
+                          )
+                        ) {
+                          // Right now, we only support  Youtube
+                          //Give me embed id with a clean url
+                          const embedId = url
+                            .replace(/(>|<)/gi, '')
+                            ?.split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/)[2]
+                            ?.split(/[^0-9a-z_\-]/i)[0];
+                          return (
+                            <div className='relative h-[280px] w-[500px] overflow-hidden rounded-2xl'>
+                              <iframe
+                                className='absolute left-0 top-0 h-full w-full'
+                                src={`https://www.youtube.com/embed/${embedId}`}
+                                allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                                allowFullScreen
+                                title='Embedded youtube'
+                              />
+                            </div>
+                          );
+                        }
                       return (
                         <div
                           className='w-[500px] rounded-xl bg-gray-300 py-1 dark:bg-slate-700 dark:text-white'
