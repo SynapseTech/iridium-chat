@@ -9,7 +9,7 @@ import {
   NextPage,
 } from 'next';
 import Head from 'next/head';
-import React, { useEffect, useRef } from 'react';
+import React, { use, useEffect, useRef, useState } from 'react';
 import Message from '../../../../components/message';
 import { getServerAuthSession } from '../../../../server/common/get-server-auth-session';
 import { trpc } from '../../../../utils/trpc';
@@ -40,7 +40,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
 
   const wsContext = useWS();
   if (!wsContext) throw new Error('WSContext not found');
-  const waitingToReconnect = wsContext?.connecting;
+  const { ws, connecting } = wsContext;
 
   const pendingMessage = useRef<MessageType | null>(null);
   const pendingNonce = useRef<string | null>(null);
@@ -84,6 +84,12 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
   }
 
   function handleScroll(e: React.UIEvent<HTMLElement>) {
+    console.log(
+      '[Debug] Scroll values (Height, Top, Client Height):',
+      e.currentTarget.scrollHeight,
+      e.currentTarget.scrollTop,
+      e.currentTarget.clientHeight,
+    );
     if (
       e.currentTarget.scrollHeight + e.currentTarget.scrollTop ===
       e.currentTarget.clientHeight
@@ -104,6 +110,45 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
       });
     }
   }, []);
+
+  const [unreadMessages, setUnreadMessages] = useState(false);
+
+  useEffect(() => {
+    if (ws) {
+      const messageHandler = (event: any) => {
+        console.log('[Debug] Received message:', event.data);
+
+        // Parse the JSON data from the WebSocket event
+        const eventData = JSON.parse(event.data);
+
+        // Check if the event type is "createMessage" and the author is not the client
+        if (
+          eventData.type === 'createMessage' &&
+          eventData.data.authorId !== session?.user?.id
+        ) {
+          // Check if there are unread messages
+          const messageListContainer = document.getElementById(
+            'message-list-container',
+          );
+          const scrollTop = messageListContainer?.scrollTop!;
+
+          if (scrollTop < 0 && !unreadMessages) {
+            // Update state to indicate unread messages
+            setUnreadMessages(true);
+          } else if (scrollTop === 0 && unreadMessages) {
+            // If scrollTop is 0 and there were unread messages, mark them as read
+            setUnreadMessages(false);
+          }
+        }
+      };
+
+      ws.addEventListener('message', messageHandler);
+
+      return () => {
+        ws.removeEventListener('message', messageHandler);
+      };
+    }
+  }, [wsContext?.ws, setUnreadMessages, unreadMessages, session]);
 
   return (
     <>
@@ -131,6 +176,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
           </div>
           <div className='relative flex-grow'>
             <div
+              id='message-list-container'
               className={`${
                 messages.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'
               } absolute bottom-0 top-0 flex w-full flex-col-reverse`}
@@ -159,7 +205,7 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
           </div>
           <div className='border-t border-gray-200 bg-white px-6 py-4 dark:bg-slate-800'>
             <MessageBox
-              connecting={waitingToReconnect}
+              connecting={connecting}
               channelName={`#${channel.name}`}
               onSend={sendMessage}
             />
@@ -167,6 +213,27 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
         </div>
         <MemberList serverId={serverId} />
       </main>
+      {unreadMessages && (
+        <div className='fixed bottom-4 right-4 flex w-[15%] flex-col items-center rounded-lg bg-gray-300 p-4'>
+          <span className='mb-2 text-black'>There are unread messages!</span>
+          <button
+            className='rounded bg-blue-500 px-4 py-2 text-white'
+            onClick={() => {
+              // Scroll to the bottom
+              const messageListContainer = document.getElementById(
+                'message-list-container',
+              );
+              messageListContainer?.scrollTo({
+                top: messageListContainer.scrollHeight,
+                behavior: 'smooth',
+              });
+              setUnreadMessages(false);
+            }}
+          >
+            Scroll down
+          </button>
+        </div>
+      )}
     </>
   );
 };
