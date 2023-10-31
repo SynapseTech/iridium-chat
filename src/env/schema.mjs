@@ -24,6 +24,7 @@ export const clientSchema = z.object({
   // NEXT_PUBLIC_BAR: z.string(),
   NEXT_PUBLIC_REACT_APP_VERSION: z.string(),
   NEXT_PUBLIC_IS_DEV: z.string(),
+  NEXT_PUBLIC_GIT_HASH: z.string(),
 });
 
 /**
@@ -36,4 +37,5 @@ export const clientEnv = {
   // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
   NEXT_PUBLIC_REACT_APP_VERSION: process.env.NEXT_PUBLIC_REACT_APP_VERSION,
   NEXT_PUBLIC_IS_DEV: process.env.NEXT_PUBLIC_IS_DEV,
+  NEXT_PUBLIC_GIT_HASH: process.env.NEXT_PUBLIC_GIT_HASH,
 };

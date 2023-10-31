@@ -1,16 +1,17 @@
 {
-  "name": "learn-t3-stack",
-  "version": "1.0.0-alpha.4",
+  "name": "iridium-chat",
+  "version": "1.0.0-alpha.5",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "devfull": "node ws/index.js & next dev",
+    "build": "export NEXT_PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) &&  next build",
+    "dev": "export NEXT_PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) && next dev",
+    "devfull": "node ws/index.js & npm run dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start",
+    "start": "export NEXT_PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) && next start",
     "prepare": "husky install",
-    "ws": "node ws/index.js --debug"
+    "ws": "node ws/index.js --debug",
+    "gitHash": "node ./scripts/gitHash.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.2.0",

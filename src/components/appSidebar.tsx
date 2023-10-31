@@ -62,7 +62,8 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
         <div className='grid grid-cols-1 gap-2'>
           <p>
             <strong>Version:</strong>{' '}
-            {process.env.NEXT_PUBLIC_REACT_APP_VERSION}
+            {process.env.NEXT_PUBLIC_REACT_APP_VERSION} (
+            {process.env.NEXT_PUBLIC_GIT_HASH})
           </p>
           <button
             className='inline-flex items-center justify-center gap-2 rounded-full border border-transparent bg-red-500 px-3 py-2 text-sm font-semibold transition-all hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 dark:focus:ring-offset-gray-800'
