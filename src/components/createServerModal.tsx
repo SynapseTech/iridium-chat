@@ -1,9 +1,8 @@
-'use client';
 import classNames from 'classnames';
 import { ChangeEvent, FC, FormEvent, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faX } from '@fortawesome/free-solid-svg-icons';
-import { trpc } from '../utils/_trpc';
+import { trpc } from '../utils/trpc';
 
 type CreateChannelModalProps = {
   open: boolean;

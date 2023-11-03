@@ -1,8 +1,7 @@
-'use client';
 import { FC, ReactNode, useEffect, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { trpc } from '../utils/_trpc';
+import { useRouter } from 'next/router';
+import { trpc } from '../utils/trpc';
 import { Server } from '@prisma/client';
 
 type SignInButtonProps = {
@@ -41,7 +40,7 @@ const SignInButton: FC<SignInButtonProps> = ({
   let text = 'Sign In';
   if (isLoggedIn) {
     if (type === 'invite') text = 'Join Server';
-    else text = 'Open App';
+    else 'Open App';
   }
   return (
     <button
@@ -56,10 +55,10 @@ const SignInButton: FC<SignInButtonProps> = ({
             servers?.filter((member) => member.id === serverId)[0]?.ownerId ===
             session.data?.user?.id
           )
-            return router.push(`/server/${serverId}`);
+            await router.push(`/server/${serverId}`);
           await memberMutation.mutateAsync({ serverId: serverId! });
-          router.push(`/server/${serverId}`);
-        } else router.replace('/server');
+          await router.push(`/server/${serverId}`);
+        } else await router.replace('/server');
       }}
       type='button'
       className={classes}

@@ -1,4 +1,3 @@
-'use client';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useCallback, useState } from 'react';
 import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
@@ -43,18 +42,17 @@ Prism.languages.insertBefore('markdown', 'prolog', {
   //   pattern: /(^\s*)(?:[*+-]|\d+\.)(?=[\t ].)/m,
   //   lookbehind: !0, alias: "punctuation"
   // },
-  'url-reference': {
-    pattern:
-      /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/,
+  "url-reference": {
+    pattern: /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/,
     inside: {
       variable: {
         pattern: /^(!?\[)[^\]]+/,
-        lookbehind: !0,
+        lookbehind: !0
       },
       string: /(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))$/,
-      punctuation: /^[\[\]!:]|[<>]/,
+      punctuation: /^[\[\]!:]|[<>]/
     },
-    alias: 'url',
+    alias: "url"
   },
   bold: {
     pattern: /(^|[^\\])(\*\*|__)(?:(?:\r?\n|\r)(?!\r?\n|\r)|.)+?\2/,
@@ -67,19 +65,15 @@ Prism.languages.insertBefore('markdown', 'prolog', {
     inside: { punctuation: /^[*_]|[*_]$/ },
   },
   url: {
-    pattern:
-      /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/,
+    pattern: /((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?/,
     inside: {
       variable: {
         pattern: /(!?\[)[^\]]+(?=\]$)/,
-        lookbehind: !0,
+        lookbehind: !0
       },
-      string: {
-        pattern:
-          /"((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?"(?=\)$)/,
-      },
-    },
-  },
+      string: { pattern: /"((http|https):\/\/+)([\w\d-]+\.)*[\w-]+[\.\:]\w+([\/\?\=\&\#.]?[\w-]+)*\/?"(?=\)$)/ }
+    }
+  }
 });
 
 (Prism.languages.markdown as any).bold.inside.url = Prism.util.clone(
@@ -110,15 +104,10 @@ const Leaf = ({ attributes, children, leaf }: any) => {
   return (
     <span
       {...attributes}
-      className={`${leaf.bold && 'font-bold'} ${leaf.italic && 'italic'} ${
-        leaf.underlined && 'underline'
-      } ${leaf.title && 'my-4 text-2xl font-bold'} ${
-        leaf.list && 'pl-4 text-xl'
-      } ${leaf.hr && 'block border-b-2 border-gray-300 text-center'} ${
-        leaf.blockquote && 'pl-4 italic text-gray-400'
-      } ${leaf.code && 'bg-gray-100 p-1 font-mono'} ${
-        leaf.link && 'text-blue-500'
-      }`}
+      className={`${leaf.bold && 'font-bold'} ${leaf.italic && 'italic'} ${leaf.underlined && 'underline'
+        } ${leaf.title && 'text-2xl font-bold my-4'} ${leaf.list && 'pl-4 text-xl'
+        } ${leaf.hr && 'block text-center border-b-2 border-gray-300'} ${leaf.blockquote && 'pl-4 text-gray-400 italic'
+        } ${leaf.code && 'font-mono bg-gray-100 p-1'} ${leaf.link && 'text-blue-500'}`}
     >
       {children}
     </span>
@@ -129,7 +118,7 @@ type MessageBoxProps = {
   channelName: string;
   connecting: boolean;
   content?: string;
-  editing?: { v: boolean; setEditing?: (v: boolean) => void; content: string };
+  editing?: { v: boolean, setEditing?: (v: boolean) => void, content: string, };
   onSend: (msg: string) => { sent: boolean } | undefined;
 };
 
@@ -194,13 +183,11 @@ const MessageBox: FC<MessageBoxProps> = ({
           renderLeaf={renderLeaf}
           spellCheck={true}
           autoCorrect='off'
-          className='form-input block w-full rounded-md border-gray-200 px-4 py-3 text-sm focus:border-brand-600 focus:ring-brand-600 dark:border-gray-600 dark:bg-gray-700 dark:text-[#DADADA]'
+          className='form-input py-3 px-4 block border-gray-200 rounded-md text-sm focus:border-brand-600 focus:ring-brand-600 dark:bg-gray-700 dark:border-gray-600 dark:text-[#DADADA] w-full'
           placeholder={
             connecting
               ? 'WebSocket is Connecting. Please Hold...'
-              : editing.v
-              ? ''
-              : `Message ${channelName}`
+              : (editing.v ? '' : `Message ${channelName}`)
           }
           onKeyDown={(e) => {
             if (e.shiftKey && e.key === 'Enter') {
@@ -212,7 +199,7 @@ const MessageBox: FC<MessageBoxProps> = ({
               e.preventDefault();
               if (
                 (e.target as HTMLDivElement).outerText.includes(
-                  editing.v ? '' : `Message ${channelName}`,
+                  (editing.v ? '' : `Message ${channelName}`),
                 )
               )
                 return;
@@ -234,7 +221,7 @@ const MessageBox: FC<MessageBoxProps> = ({
       {!editing.v ? (
         <button
           type='submit'
-          className='inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-brand-100 px-4 py-3 text-sm font-semibold text-brand-600 ring-offset-white transition-all hover:bg-brand-600 hover:text-white focus:bg-brand-600 focus:text-white focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 dark:focus:ring-offset-gray-800'
+          className='py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800'
           disabled={connecting}
           onClick={() => {
             if ((editor.children[0] as any)?.children[0].text.length === 0)
@@ -258,7 +245,7 @@ const MessageBox: FC<MessageBoxProps> = ({
         <>
           <button
             type='submit'
-            className='inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-brand-100 px-4 py-3 text-sm font-semibold text-brand-600 ring-offset-white transition-all hover:bg-brand-600 hover:text-white focus:bg-brand-600 focus:text-white focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 dark:focus:ring-offset-gray-800'
+            className='py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-brand-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-brand-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800'
             disabled={connecting}
             onClick={() => {
               if ((editor.children[0] as any)?.children[0].text.length === 0)
@@ -275,7 +262,7 @@ const MessageBox: FC<MessageBoxProps> = ({
           </button>
           <button
             type='submit'
-            className='inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-red-100 px-4 py-3 text-sm font-semibold text-brand-600 ring-offset-white transition-all hover:bg-red-600 hover:text-white focus:bg-brand-600 focus:text-white focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 dark:focus:ring-offset-gray-800'
+            className='py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md bg-red-100 border border-transparent font-semibold text-brand-600 hover:text-white hover:bg-red-600 focus:outline-none focus:ring-2 ring-offset-white focus:ring-brand-600 focus:text-white focus:bg-brand-600 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800'
             disabled={connecting}
             onClick={() => {
               editing.setEditing?.(false);

@@ -1,6 +1,6 @@
-import Providers from './Providers';
+import Providers from "./Providers";
 import '../styles/globals.css';
-import ModalContainer from './Modal';
+import { ModalContainer } from "../@app/components/ModalContainer";
 
 export default function RootLayout({
   // Layouts must accept a children prop.
@@ -11,14 +11,14 @@ export default function RootLayout({
 }) {
   return (
     <Providers>
-      <html lang='en'>
+      <html lang="en">
         <head>
-          <link rel='icon' href='/favicon.ico' sizes='any' />
+          <link rel="icon" href="/favicon.ico" sizes="any" />
         </head>
         <body>
           {children}
-          <div className='pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-[1002] !bg-none'>
-            <ModalContainer />
+          <div className='absolute top-0 left-0 right-0 bottom-0 !bg-none pointer-events-none z-[1002]'>
+            <ModalContainer></ModalContainer>
           </div>
         </body>
       </html>

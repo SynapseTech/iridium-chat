@@ -1,9 +1,8 @@
-'use client';
 import { useWS } from '../contexts/WSProvider';
 import { TextMessage, User } from '@prisma/client';
 import { useState, useEffect, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
-import { trpc } from '../utils/_trpc';
+import { useRouter } from 'next/router';
+import { trpc } from '../utils/trpc';
 import { RawEmbed } from '../server/trpc/router/channel';
 
 export type MessageType = TextMessage & {
@@ -28,7 +27,7 @@ const useMessages = (
 ): [MessageType[], boolean, () => void] => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const pathName = usePathname();
+  const router = useRouter();
 
   const loadMessagesQuery = trpc.channel.fetchMessages.useQuery({
     channelId: channelId,
@@ -43,10 +42,9 @@ const useMessages = (
    * Reset messages and set loading to true when channel route changes
    */
   useEffect(() => {
-    console.log('[Debug] [useMessages] pathName changed to:', pathName);
     setMessages([]);
     setLoading(true);
-  }, [pathName]);
+  }, [router.asPath]);
 
   /**
    * Load messages via tRPC

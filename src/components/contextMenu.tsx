@@ -1,4 +1,3 @@
-'use client';
 import { User } from '@prisma/client';
 import { User as ServerUser } from '../server/trpc/router/server';
 import * as CM from '@radix-ui/react-context-menu';

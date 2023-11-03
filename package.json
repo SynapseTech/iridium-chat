@@ -32,7 +32,7 @@
     "dotenv": "^16.0.3",
     "iconsax-react": "^0.0.8",
     "jsdom": "^21.0.0",
-    "next": "^14.0.1",
+    "next": "^13.4.2",
     "next-auth": "^4.21.0",
     "node-cron": "^3.0.2",
     "preline": "^1.2.1",

@@ -1,6 +1,5 @@
-'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { trpc } from '../utils/_trpc';
+import { trpc } from '../utils/trpc';
 
 type WSContextType = {
   ws: WebSocket | null;
