@@ -74,7 +74,6 @@ export const serverRouter = t.router({
         },
       });
 
-      console.log('[joinServer]', 'Checking for Server', server);
       if (!server) return { success: false };
 
       const check = await ctx.prisma.serverMember.findFirst({
@@ -84,7 +83,6 @@ export const serverRouter = t.router({
         },
       });
 
-      console.log('[joinServer]', 'Checking for User in Server', check);
       if (check) return { success: false };
 
       await ctx.prisma.serverMember.create({
@@ -93,9 +91,8 @@ export const serverRouter = t.router({
           userId: ctx.session.user.id,
         },
       });
-      console.log('[joinServer]', 'User Created');
 
-      return { success: false };
+      return { success: true };
     }),
   delete: authedProcedure
     .input(

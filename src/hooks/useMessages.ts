@@ -81,7 +81,6 @@ const useMessages = (
     }
 
     if (data.type === 'deleteMessage') {
-      console.log('[useMessages] deleteMessage', data.data);
       onRecieve?.(data.data, data.nonce);
       setMessages((prev) => {
         const index = prev.findIndex(
@@ -96,7 +95,6 @@ const useMessages = (
     }
 
     if (data.type === 'editMessage') {
-      console.log('[useMessages] editMessage', data.data);
       onRecieve?.(data.data, data.nonce);
       setMessages((prev) => {
         const index = prev.findIndex(

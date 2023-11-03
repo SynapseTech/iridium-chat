@@ -84,12 +84,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
   }
 
   function handleScroll(e: React.UIEvent<HTMLElement>) {
-    console.log(
-      '[Debug] Scroll values (Height, Top, Client Height):',
-      e.currentTarget.scrollHeight,
-      e.currentTarget.scrollTop,
-      e.currentTarget.clientHeight,
-    );
     if (
       e.currentTarget.scrollHeight + e.currentTarget.scrollTop ===
       e.currentTarget.clientHeight
@@ -116,8 +110,6 @@ const ChatPage: NextPage<ChatPageProps> = ({ channel, serverId }) => {
   useEffect(() => {
     if (ws) {
       const messageHandler = (event: any) => {
-        console.log('[Debug] Received message:', event.data);
-
         // Parse the JSON data from the WebSocket event
         const eventData = JSON.parse(event.data);
 

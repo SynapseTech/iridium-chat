@@ -40,7 +40,7 @@ const SignInButton: FC<SignInButtonProps> = ({
   let text = 'Sign In';
   if (isLoggedIn) {
     if (type === 'invite') text = 'Join Server';
-    else 'Open App';
+    else text = 'Open App';
   }
   return (
     <button

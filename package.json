@@ -8,7 +8,7 @@
     "devfull": "node ws/index.js & npm run dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "export NEXT_PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) && next start",
+    "start": "next start",
     "prepare": "husky install",
     "ws": "node ws/index.js --debug",
     "gitHash": "node ./scripts/gitHash.js"
@@ -32,7 +32,7 @@
     "dotenv": "^16.0.3",
     "iconsax-react": "^0.0.8",
     "jsdom": "^21.0.0",
-    "next": "^13.4.2",
+    "next": "^14.0.1",
     "next-auth": "^4.21.0",
     "node-cron": "^3.0.2",
     "preline": "^1.2.1",
