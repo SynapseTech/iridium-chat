@@ -1,5 +1,6 @@
-import { use, useEffect, useState } from 'react';
-import { trpc } from '../utils/trpc';
+'use client';
+import { useEffect, useState } from 'react';
+import { trpc } from '../utils/_trpc';
 import { User } from '../server/trpc/router/server';
 import * as CM from '@radix-ui/react-context-menu';
 import { ContextMenu } from './contextMenu';

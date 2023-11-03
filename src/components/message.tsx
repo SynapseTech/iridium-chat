@@ -1,8 +1,9 @@
+'use client';
 import classNames from 'classnames';
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import { MessageType } from '../hooks/useMessages';
 import { MessageEdit, Trash } from 'iconsax-react';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../utils/_trpc';
 import { useSession } from 'next-auth/react';
 import MessageBox from './messageBox';
 import { ContextMenu } from './contextMenu';

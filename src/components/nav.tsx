@@ -1,10 +1,11 @@
+'use client';
 import Link from 'next/link';
 import { FC } from 'react';
 import SignInButton from './signInButton';
 
 const Nav: FC = () => {
   return (
-    <header className='mb-auto flex flex-wrap sm:justify-start sm:flex-nowrap z-50 w-full text-sm py-4'>
+    <header className='z-50 mb-auto flex w-full flex-wrap py-4 text-sm sm:flex-nowrap sm:justify-start'>
       <nav
         className='w-full px-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8'
         aria-label='Global'
@@ -12,25 +13,26 @@ const Nav: FC = () => {
         <div className='flex items-center justify-between'>
           <Link
             href='/'
-            className='flex flex-none w-auto content-center text-xl font-semibold text-white'
-            aria-label='Iridium'>
-
+            className='flex w-auto flex-none content-center text-xl font-semibold text-white'
+            aria-label='Iridium'
+          >
             <img
-              className='h-8 w-8 inline'
+              className='inline h-8 w-8'
               alt='iridium logo'
               src='/iridium_logo.svg'
-            />Iridium
+            />
+            Iridium
           </Link>
           <div className='sm:hidden'>
             <button
               type='button'
-              className='hs-collapse-toggle p-2 inline-flex justify-center items-center gap-2 rounded-md border border-gray-700 hover:border-gray-600 font-medium text-gray-300 hover:text-white shadow-sm align-middle focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-600 transition-all text-sm'
+              className='hs-collapse-toggle inline-flex items-center justify-center gap-2 rounded-md border border-gray-700 p-2 align-middle text-sm font-medium text-gray-300 shadow-sm transition-all hover:border-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-slate-900'
               data-hs-collapse='#navbar-collapse-with-animation'
               aria-controls='navbar-collapse-with-animation'
               aria-label='Toggle navigation'
             >
               <svg
-                className='hs-collapse-open:hidden w-4 h-4'
+                className='h-4 w-4 hs-collapse-open:hidden'
                 width='16'
                 height='16'
                 fill='currentColor'
@@ -42,7 +44,7 @@ const Nav: FC = () => {
                 />
               </svg>
               <svg
-                className='hs-collapse-open:block hidden w-4 h-4'
+                className='hidden h-4 w-4 hs-collapse-open:block'
                 width='16'
                 height='16'
                 fill='currentColor'
@@ -55,9 +57,9 @@ const Nav: FC = () => {
         </div>
         <div
           id='navbar-collapse-with-animation'
-          className='hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow sm:block'
+          className='hs-collapse hidden grow basis-full overflow-hidden transition-all duration-300 sm:block'
         >
-          <div className='flex flex-col gap-5 mt-5 sm:flex-row sm:items-center sm:justify-end sm:mt-0 sm:pl-5'>
+          <div className='mt-5 flex flex-col gap-5 sm:mt-0 sm:flex-row sm:items-center sm:justify-end sm:pl-5'>
             {/* <a className="font-medium text-white" href="#" aria-current="page">Home</a>
                         <a class="font-medium text-gray-400 hover:text-gray-500" href="#">Account</a>
                         <a class="font-medium text-gray-400 hover:text-gray-500" href="#">Work</a>

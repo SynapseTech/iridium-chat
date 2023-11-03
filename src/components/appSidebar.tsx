@@ -1,3 +1,4 @@
+'use client';
 import { FC, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
@@ -12,10 +13,10 @@ import {
   Trash,
 } from 'iconsax-react';
 import { Server, TextChannel } from '@prisma/client';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../utils/_trpc';
 import CreateServerModal from './createServerModal';
 import CreateChannelModal from './createChannelModal';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { createModal, useGlobalModal } from '../contexts/ModalProvider';
 import { useWS } from '../contexts/WSProvider';
@@ -109,7 +110,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
         onClose={async (id?: string) => {
           setCreateServerModalOpen(false);
           await loadServersQuery.refetch();
-          if (id) await router.replace(`/server/${id}`);
+          if (id) router.replace(`/server/${id}`);
         }}
       />
       <CreateChannelModal
@@ -118,8 +119,7 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
         onClose={async (id?: string) => {
           setCreateChannelModalOpen(false);
           await loadChannelsQuery.refetch();
-          if (id)
-            await router.replace(`/server/${currentServerId}/channel/${id}`);
+          if (id) router.replace(`/server/${currentServerId}/channel/${id}`);
         }}
       />
       <aside className='hs-sidebar scrollbar-y w-64 flex-col overflow-y-auto border-r border-gray-200 bg-white pb-10 pt-8 dark:bg-slate-800'>

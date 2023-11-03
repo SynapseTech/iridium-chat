@@ -88,9 +88,6 @@ const ModalContainer = () => {
   if (state.state === false) return null;
   return (
     <>
-      <head>
-        <script src='http://localhost:8097'></script>
-      </head>
       <div
         className='flex items-center justify-center'
         style={{ margin: '0 auto' }}

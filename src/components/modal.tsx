@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import { Markdown } from './markdown';
 
 export type ModalData = {
