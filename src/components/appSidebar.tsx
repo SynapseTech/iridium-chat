@@ -312,19 +312,23 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
                       </a>
                     </li>
                   ))}
-            <li>
-              <button
-                onClick={() =>
-                  !currentServerId
-                    ? setCreateServerModalOpen(true)
-                    : setCreateChannelModalOpen(true)
-                }
-                className='flex w-full items-center gap-x-3.5 rounded-md bg-brand-600 px-2.5 py-2 text-sm text-white hover:bg-brand-700'
-              >
-                <Add color='currentColor' className='h-3.5 w-3.5' />
-                {!currentServerId ? 'Create Server' : 'Create Channel'}
-              </button>
-            </li>
+            {currentServerId &&
+            servers.filter((server) => server.id === currentServerId)[0]
+              ?.ownerId !== session?.user?.id ? null : (
+              <li>
+                <button
+                  onClick={() =>
+                    !currentServerId
+                      ? setCreateServerModalOpen(true)
+                      : setCreateChannelModalOpen(true)
+                  }
+                  className='flex w-full items-center gap-x-3.5 rounded-md bg-brand-600 px-2.5 py-2 text-sm text-white hover:bg-brand-700'
+                >
+                  <Add color='currentColor' className='h-3.5 w-3.5' />
+                  {!currentServerId ? 'Create Server' : 'Create Channel'}
+                </button>
+              </li>
+            )}
             <li>
               <div className='grid grid-cols-2 items-center justify-center gap-3'>
                 <button
