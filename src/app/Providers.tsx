@@ -1,12 +1,12 @@
 'use client';
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider } from 'next-auth/react';
 import { getBaseUrl, trpc } from '../utils/_trpc';
-import { httpBatchLink, loggerLink } from "@trpc/client";
-import SuperJSON from "superjson";
-import { useEffect, useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WebSocketProvider } from "../contexts/WSProvider";
-import { GlobalModalProvider, useGlobalModal } from "../contexts/ModalProvider";
+import { httpBatchLink, loggerLink } from '@trpc/client';
+import SuperJSON from 'superjson';
+import { useEffect, useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WebSocketProvider } from '../contexts/WSProvider';
+import { GlobalModalProvider, useGlobalModal } from '../contexts/ModalProvider';
 
 function ClientProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -14,7 +14,10 @@ function ClientProvider({ children }: { children: React.ReactNode }) {
     trpc.createClient({
       links: [
         loggerLink({
-          enabled: () => true,
+          enabled: (opts) =>
+            (process.env.NODE_ENV === 'development' &&
+              typeof window !== 'undefined') ||
+            (opts.direction === 'down' && opts.result instanceof Error),
         }),
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
@@ -26,9 +29,7 @@ function ClientProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </trpc.Provider>
   );
 }
@@ -39,7 +40,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     // @ts-ignore
     import('preline');
   }, []);
-
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -82,11 +82,9 @@ Iridium Chat: A Synapse Technologies Product. Check out the code at https://gith
     <ClientProvider>
       <SessionProvider>
         <WebSocketProvider>
-          <GlobalModalProvider>
-            {children}
-          </GlobalModalProvider>
+          <GlobalModalProvider>{children}</GlobalModalProvider>
         </WebSocketProvider>
       </SessionProvider>
     </ClientProvider>
-  )
+  );
 }

@@ -14,6 +14,14 @@
       "url": "http://localhost:3000"
     },
     {
+      "name": "WS Server: Debug",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "ws"]
+    },
+    {
       "name": "Next.js: debug full stack",
       "type": "node-terminal",
       "request": "launch",

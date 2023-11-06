@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/_app.tsx
 import '../styles/globals.css';
-import { SessionProvider } from 'next-auth/react';
+import { SessionProvider, getSession } from 'next-auth/react';
 import type { AppType } from 'next/dist/shared/lib/utils';
 import { trpc } from '../utils/trpc';
 import { useEffect } from 'react';
@@ -15,7 +15,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     // @ts-ignore
     import('preline');
   }, []);
-
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -54,17 +53,30 @@ Iridium Chat: A Synapse Technologies Product. Check out the code at https://gith
 		`);
     }
   }, []);
+
+  useEffect(() => {
+    // Save User ID when session is not null
+    async function _getSession() {
+      const _s = await getSession((pageProps as any).session);
+      if (_s !== null || _s !== undefined) {
+        localStorage.setItem('userId', _s!.user!.id);
+      } else {
+        localStorage.removeItem('userId');
+      }
+    }
+    _getSession();
+  }, [(pageProps as any).session]);
   return (
     <SessionProvider session={(pageProps as any).session}>
       <WebSocketProvider>
         <GlobalModalProvider>
           <Component {...pageProps} />
-          <div className='absolute top-0 left-0 right-0 bottom-0 !bg-none pointer-events-none z-[1002]'>
+          <div className='pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-[1002] !bg-none'>
             <ModalContainer></ModalContainer>
           </div>
         </GlobalModalProvider>
       </WebSocketProvider>
-    </SessionProvider >
+    </SessionProvider>
   );
 };
 
@@ -75,17 +87,30 @@ const ModalContainer = () => {
   if (state.state === undefined) return null;
   if (state.state === false) return null;
   return (
-    <div className='flex justify-center items-center' style={{ margin: '0 auto' }}>
-      <div className='fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-[0.85] flex items-center justify-center' style={{ pointerEvents: 'all', transform: 'translateZ(0)' }} />
-      <Modal onClose={() => {
-        if (state.type === 'terms') {
-          document.cookie = 'terms=1;max-age=31536000';
-        }
-        setState({ ...state, state: false })
-      }} data={state as ModalData} />
-    </div>
-  )
-}
-
+    <>
+      <head>
+        <script src='http://localhost:8097'></script>
+      </head>
+      <div
+        className='flex items-center justify-center'
+        style={{ margin: '0 auto' }}
+      >
+        <div
+          className='fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-black bg-opacity-[0.85]'
+          style={{ pointerEvents: 'all', transform: 'translateZ(0)' }}
+        />
+        <Modal
+          onClose={() => {
+            if (state.type === 'terms') {
+              document.cookie = 'terms=1;max-age=31536000';
+            }
+            setState({ ...state, state: false });
+          }}
+          data={state as ModalData}
+        />
+      </div>
+    </>
+  );
+};
 
 export default trpc.withTRPC(MyApp);
