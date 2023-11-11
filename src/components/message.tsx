@@ -9,6 +9,7 @@ import { ContextMenu } from './contextMenu';
 import * as CM from '@radix-ui/react-context-menu';
 import { Markdown } from './markdown';
 import { isSameDay, format, subDays } from 'date-fns';
+import Embed from './embed';
 
 type MessageProps = {
   _key: any;
@@ -103,67 +104,14 @@ const Message: FC<MessageProps> = ({ message, pending = false, _key }) => {
               </div>
               <div className='flex flex-col gap-y-2'>
                 {message.embeds
-                  ? message.embeds.map(({ title, description, url }, index) => {
-                      // Image Check
-                      if (
-                        /(http)?s?:?(\/\/[^"']*\.(?:png|jpg|jpeg|gif|png|svg))/i.test(
-                          url,
-                        )
-                      )
-                        return (
-                          <img
-                            className='w-[500px] rounded-xl'
-                            src={url}
-                            alt='Linked image'
-                          />
-                        );
-
-                      // Youtube/Social Checks
-                      if (
-                        /(http)?s?:?(\/\/[^"']*\.(?:youtube|youtu|youtube-nocookie|twitch|tiktok|facebook|instagram|twitter|soundcloud|vimeo))/i.test(
-                          url,
-                        )
-                      )
-                        if (
-                          /(http)?s?:?(\/\/[^"']*\.(?:youtube|youtu|youtube-nocookie))/i.test(
-                            url,
-                          )
-                        ) {
-                          // Right now, we only support  Youtube
-                          //Give me embed id with a clean url
-                          const embedId = url
-                            .replace(/(>|<)/gi, '')
-                            ?.split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/)[2]
-                            ?.split(/[^0-9a-z_\-]/i)[0];
-                          return (
-                            <div className='relative h-[280px] w-[500px] overflow-hidden rounded-2xl'>
-                              <iframe
-                                className='absolute left-0 top-0 h-full w-full'
-                                src={`https://www.youtube.com/embed/${embedId}`}
-                                allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-                                allowFullScreen
-                                title='Embedded youtube'
-                              />
-                            </div>
-                          );
-                        }
-                      return (
-                        <div
-                          className='w-[500px] rounded-xl bg-gray-300 py-1 dark:bg-slate-700 dark:text-white'
-                          key={index}
-                        >
-                          <div className='flex flex-col p-4'>
-                            <p className='text-xl font-bold text-blue-500 hover:underline'>
-                              <a href={url} target='_blank' rel='noreferrer'>
-                                {title}
-                              </a>
-                            </p>
-                            <br></br>
-                            <span className='text-sm'>{description}</span>
-                          </div>
-                        </div>
-                      );
-                    })
+                  ? message.embeds.map(({ title, description, url }, index) => (
+                      <Embed
+                        index={index}
+                        title={title}
+                        description={description}
+                        url={url}
+                      />
+                    ))
                   : null}
               </div>
             </div>
