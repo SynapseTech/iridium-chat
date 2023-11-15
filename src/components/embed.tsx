@@ -66,7 +66,7 @@ const Embed: FC<EmbedProps> = ({ index, title, description, url }) => {
         <div className='relative h-[280px] w-[500px] overflow-hidden'>
           <iframe
             className='absolute left-0 top-0 h-full w-full'
-            src={`https://player.twitch.tv/?channel=${embedId}&parent=localhost`}
+            src={`https://player.twitch.tv/?channel=${embedId}&parent=${window.location.hostname}`}
             allowFullScreen
             title='Embedded twitch'
           />
@@ -113,7 +113,7 @@ const Embed: FC<EmbedProps> = ({ index, title, description, url }) => {
             {title}
           </a>
         </p>
-        <br></br>
+        <br />
         <span className='text-sm'>{description}</span>
       </div>
     </div>
