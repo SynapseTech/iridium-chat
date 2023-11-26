@@ -337,11 +337,11 @@ const ApplicationSidebar: FC<ApplicationSidebarProps> = ({
                     if (localStorage.getItem('theme') === 'dark') {
                       localStorage.setItem('theme', 'light');
                       setTheme('light');
-                      document.body.classList.remove('dark');
+                      document.body.dataset.theme = 'light';
                     } else {
                       localStorage.setItem('theme', 'dark');
                       setTheme('dark');
-                      document.body.classList.add('dark');
+                      document.body.dataset.theme = 'dark';
                     }
                   }}
                 >

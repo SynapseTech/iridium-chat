@@ -19,9 +19,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (localStorage.getItem('theme') === 'dark') {
-        window.document.body.classList.add('dark');
+        window.document.body.dataset.theme = 'dark';
       } else {
-        window.document.body.classList.remove('dark');
+        window.document.body.dataset.theme = 'light';
       }
     }
     if (window.console) {
